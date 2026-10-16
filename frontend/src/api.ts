@@ -106,6 +106,10 @@ export type ScenarioProgress = {
   sessions: { scenario_id: string; title: string; is_completed: boolean; started_at: string; completed_at?: string | null; response_count: number }[];
 };
 
+export type ChatReference = { type: "lesson" | "scenario"; id: string; title: string };
+export type ChatMessage = { id: string; role: "user" | "assistant"; content: string; references: ChatReference[]; created_at: string };
+export type ChatConversation = { id: string; title: string; created_at: string; updated_at: string; messages: ChatMessage[] };
+
 const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000").replace(/\/$/, "");
 
 export class ApiError extends Error {

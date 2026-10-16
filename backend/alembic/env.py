@@ -10,6 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from database import Base, database_url
 import models.learning  # noqa: F401; registers learning tables with Base.metadata
 import models.user  # noqa: F401; registers account tables with Base.metadata
+import models.chat  # noqa: F401; registers chatbot tables with Base.metadata
 from backend.models.completed_lesson import CompletedLesson  # noqa: F401
 from backend.models.scenario import Scenario  # noqa: F401
 from backend.models.scenario_response import ScenarioResponse  # noqa: F401

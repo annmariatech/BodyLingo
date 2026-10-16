@@ -11,7 +11,7 @@ import {
   Sparkles,
   UsersRound,
 } from "lucide-react";
-import { apiRequest, clearAuth, saveAuth, type AuthResult, type AuthUser, type LessonSummary, type LessonDetail, type LearningQuestion, type LearningProgress, type LearningReview, type Preferences, type ScenarioDetail, type ScenarioProgress, type ScenarioResponse, type ScenarioStep, type ScenarioSummary } from "./api";
+import { apiRequest, clearAuth, saveAuth, type AuthResult, type AuthUser, type LessonSummary, type LessonDetail, type LearningQuestion, type LearningProgress, type LearningReview, type Preferences, type ScenarioDetail, type ScenarioProgress, type ScenarioResponse, type ScenarioStep, type ScenarioSummary, type ChatConversation, type ChatMessage, type ChatReference } from "./api";
 
 type Screen = "Learning" | "Scenario" | "Chatbot" | "Forum" | "Profile";
 const screens: { name: Screen; icon: typeof BookOpen }[] = [
@@ -82,7 +82,7 @@ function AuthScreen({ onAuthenticated }: { onAuthenticated: (user: AuthUser) => 
   );
 }
 
-function LearningScreen({ onProgress }: { onProgress: (progress: LearningProgress) => void }) {
+function LearningScreen({ onProgress, initialLessonId }: { onProgress: (progress: LearningProgress) => void; initialLessonId?: string }) {
   const [lessons, setLessons] = useState<LessonSummary[]>([]);
   const [progress, setProgress] = useState<LearningProgress | null>(null);
   const [reviews, setReviews] = useState<LearningReview[]>([]);
@@ -135,6 +135,8 @@ function LearningScreen({ onProgress }: { onProgress: (progress: LearningProgres
       setBusy(false);
     }
   }
+
+  useEffect(() => { if (initialLessonId) void openLesson(initialLessonId); }, [initialLessonId]);
 
   async function answerQuestion() {
     const question = questions[questionIndex];
@@ -208,7 +210,7 @@ function LearningScreen({ onProgress }: { onProgress: (progress: LearningProgres
   </>;
 }
 
-function ScenarioScreen() {
+function ScenarioScreen({ initialScenarioId }: { initialScenarioId?: string }) {
   const [scenarios, setScenarios] = useState<ScenarioSummary[]>([]);
   const [completed, setCompleted] = useState<string[]>([]);
   const [active, setActive] = useState<ScenarioDetail | null>(null);
@@ -248,6 +250,13 @@ function ScenarioScreen() {
       setBusy(false);
     }
   }
+
+  useEffect(() => {
+    if (!initialScenarioId) return;
+    void apiRequest<ScenarioDetail>(`/api/scenarios/${initialScenarioId}`).then((detail) => {
+      setActive(detail); setStep(detail); setFeedback(null); setIsComplete(false);
+    }).catch((cause) => setError(cause instanceof Error ? cause.message : "This scenario could not be opened."));
+  }, [initialScenarioId]);
 
   async function choose(choiceId: string) {
     if (!active || !step) return;
@@ -294,9 +303,70 @@ function ScenarioScreen() {
   </section>;
 }
 
-function ComingSoon({ screen }: { screen: "Chatbot" | "Forum" }) {
+function ChatScreen({ onOpenReference }: { onOpenReference: (reference: ChatReference) => void }) {
+  const [conversations, setConversations] = useState<ChatConversation[]>([]);
+  const [activeId, setActiveId] = useState("");
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [draft, setDraft] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [voiceAvailable, setVoiceAvailable] = useState(false);
+
+  async function loadConversation(id: string) {
+    const conversation = await apiRequest<ChatConversation>(`/api/chat/conversations/${id}`);
+    setActiveId(id);
+    setMessages(conversation.messages);
+  }
+  async function refresh() {
+    const items = await apiRequest<ChatConversation[]>("/api/chat/conversations");
+    setConversations(items);
+    if (items.length && !activeId) await loadConversation(items[0].id);
+  }
+  useEffect(() => {
+    setVoiceAvailable("SpeechRecognition" in window || "webkitSpeechRecognition" in window);
+    void refresh().catch((cause) => setError(cause instanceof Error ? cause.message : "Chat history could not be loaded."));
+  }, []);
+
+  async function newConversation() {
+    setBusy(true); setError("");
+    try {
+      const created = await apiRequest<ChatConversation>("/api/chat/conversations", { method: "POST" });
+      setConversations((items) => [created, ...items]); setActiveId(created.id); setMessages([]);
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "A conversation could not be started."); }
+    finally { setBusy(false); }
+  }
+  async function send(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const content = draft.trim();
+    if (!content || busy) return;
+    setBusy(true); setError("");
+    try {
+      let id = activeId;
+      if (!id) {
+        const created = await apiRequest<ChatConversation>("/api/chat/conversations", { method: "POST" });
+        id = created.id; setActiveId(id);
+      }
+      const reply = await apiRequest<ChatMessage>(`/api/chat/conversations/${id}/messages`, { method: "POST", body: JSON.stringify({ content }) });
+      setMessages((items) => [...items, { id: `pending-${Date.now()}`, role: "user", content, references: [], created_at: new Date().toISOString() }, reply]);
+      setDraft(""); await refresh();
+    } catch (cause) { setError(cause instanceof Error ? cause.message : "Your message could not be sent."); }
+    finally { setBusy(false); }
+  }
+  function dictate() {
+    const Speech = (window as Window & { SpeechRecognition?: new () => { lang: string; onresult: (event: { results: { [index: number]: { [index: number]: { transcript: string } } } }) => void; onerror: () => void; start: () => void }; webkitSpeechRecognition?: new () => { lang: string; onresult: (event: { results: { [index: number]: { [index: number]: { transcript: string } } } }) => void; onerror: () => void; start: () => void } }).SpeechRecognition ?? (window as Window & { webkitSpeechRecognition?: new () => { lang: string; onresult: (event: { results: { [index: number]: { [index: number]: { transcript: string } } } }) => void; onerror: () => void; start: () => void } }).webkitSpeechRecognition;
+    if (!Speech) return;
+    const recognition = new Speech(); recognition.lang = navigator.language;
+    recognition.onresult = (event) => setDraft((text) => `${text}${text ? " " : ""}${event.results[0][0].transcript}`);
+    recognition.onerror = () => setError("Voice input was unavailable. You can type your message instead."); recognition.start();
+  }
+  return <section className="chat-layout"><header className="chat-heading"><div><p className="eyebrow">A CURIOUS CONVERSATION</p><h1>Ask Pip</h1><p>Explore communication with context and care. Cues are possibilities, not proof of what someone means.</p></div><button className="button button-primary" onClick={() => void newConversation()} disabled={busy}>New conversation</button></header>
+    <div className="chat-workspace"><aside className="chat-history"><h2>Your conversations</h2>{conversations.map((item) => <button key={item.id} className={activeId === item.id ? "selected" : ""} onClick={() => void loadConversation(item.id)}>{item.title}</button>)}{!conversations.length && <p>New chats will appear here.</p>}</aside>
+      <div className="chat-panel"><div className="chat-messages" aria-live="polite">{messages.length === 0 ? <div className="chat-welcome"><span aria-hidden="true">🐧</span><h2>What would you like to explore?</h2><p>Ask about a lesson topic, a social situation, or ways to check in respectfully.</p><div className="chat-suggestions">{["How can I ask for clarification?", "What are some ways to notice tone of voice?", "How can I check in with a quiet teammate?"] .map((question) => <button key={question} onClick={() => setDraft(question)}>{question}</button>)}</div></div> : messages.map((message) => <article className={`chat-message ${message.role}`} key={message.id}><p>{message.content}</p>{message.references.length > 0 && <div className="chat-references"><span>Explore in BodyLingo</span>{message.references.map((reference) => <button key={`${reference.type}-${reference.id}`} onClick={() => onOpenReference(reference)}>{reference.type === "lesson" ? <BookOpen size={15} /> : <Compass size={15} />}{reference.title}<ChevronRight size={14} /></button>)}</div>}</article>)}</div>
+        {error && <p className="inline-error" role="alert">{error}</p>}<form className="chat-compose" onSubmit={(event) => void send(event)}><textarea aria-label="Message Pip" maxLength={2000} placeholder="Write a question or situation to explore…" value={draft} onChange={(event) => setDraft(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); event.currentTarget.form?.requestSubmit(); } }} />{voiceAvailable && <button type="button" className="button button-quiet" onClick={dictate} aria-label="Use voice input">🎙</button>}<button className="button button-primary" disabled={busy || !draft.trim()}>{busy ? "Thinking…" : "Send"}<ChevronRight size={16} /></button></form><small className="chat-privacy">Your conversations are private to your account. Avoid sharing sensitive personal information.</small></div></div></section>;
+}
+
+function ComingSoon({ screen }: { screen: "Forum" }) {
   const messages = {
-    Chatbot: { icon: MessageCircle, eyebrow: "A CURIOUS CONVERSATION", title: "Questions are welcome here", copy: "Your learning companion is coming soon. For now, explore the lesson cards and keep your questions close." },
     Forum: { icon: UsersRound, eyebrow: "LEARN IN COMMUNITY", title: "Many perspectives make room", copy: "A read-only community space with thoughtfully chosen topics is on its way." },
   }[screen];
   const Icon = messages.icon;
@@ -361,6 +431,7 @@ function AppShell({ user, onUserUpdate, onLogout, onboardingPending }: { user: A
   const [showOnboarding, setShowOnboarding] = useState(onboardingPending);
   const [returnToProfile, setReturnToProfile] = useState(false);
   const [progress, setProgress] = useState<LearningProgress | null>(null);
+  const [pendingReference, setPendingReference] = useState<ChatReference | null>(null);
 
   async function savePreferences(preferences: Preferences) {
     const saved = await apiRequest<Preferences>("/api/learning/preferences", { method: "PUT", body: JSON.stringify(preferences) });
@@ -372,7 +443,7 @@ function AppShell({ user, onUserUpdate, onLogout, onboardingPending }: { user: A
 
   return <div className="app-shell">
     <aside className="sidebar"><a className="brand" href="#home"><span className="brand-mark">b.</span> bodylingo</a><div className="sidebar-label">YOUR SPACE</div><nav aria-label="Main navigation" className="side-nav">{screens.map(({ name, icon: Icon }) => <button key={name} className={`nav-link ${screen === name ? "active" : ""}`} aria-current={screen === name ? "page" : undefined} onClick={() => setScreen(name)}><Icon size={19} strokeWidth={1.8} /><span>{name}</span>{name === "Learning" && <span className="nav-dot" />}</button>)}</nav><div className="sidebar-bottom"><div className="sidebar-mascot">🐧<div><strong>You’ve got this!</strong><span>Curiosity looks good on you.</span></div></div><button className="user-mini" onClick={() => setScreen("Profile")}><span className="mini-avatar">{user.username.slice(0, 1).toUpperCase()}</span><span><strong>{user.username}</strong><small>My profile</small></span><ChevronRight size={16} /></button></div></aside>
-    <main className="main-column"><header className="topbar"><div className="mobile-brand"><span className="brand-mark">b.</span> bodylingo</div><span className="topbar-greeting">A little more understanding, every day <span>✦</span></span><button className="top-avatar" aria-label="Open profile" onClick={() => setScreen("Profile")}>{user.username.slice(0, 1).toUpperCase()}</button></header><div className="content-area" key={`${screen}-${showOnboarding}`}>{showOnboarding ? <OnboardingScreen initial={user.preferences} onSaved={savePreferences} /> : screen === "Learning" ? <LearningScreen onProgress={setProgress} /> : screen === "Scenario" ? <ScenarioScreen /> : screen === "Profile" ? <ProfileScreen user={user} onLogout={onLogout} progress={progress} onEdit={() => { setReturnToProfile(true); setShowOnboarding(true); }} /> : <ComingSoon screen={screen} />}</div></main>
+    <main className="main-column"><header className="topbar"><div className="mobile-brand"><span className="brand-mark">b.</span> bodylingo</div><span className="topbar-greeting">A little more understanding, every day <span>✦</span></span><button className="top-avatar" aria-label="Open profile" onClick={() => setScreen("Profile")}>{user.username.slice(0, 1).toUpperCase()}</button></header><div className="content-area" key={`${screen}-${showOnboarding}`}>{showOnboarding ? <OnboardingScreen initial={user.preferences} onSaved={savePreferences} /> : screen === "Learning" ? <LearningScreen onProgress={setProgress} initialLessonId={pendingReference?.type === "lesson" ? pendingReference.id : undefined} /> : screen === "Scenario" ? <ScenarioScreen initialScenarioId={pendingReference?.type === "scenario" ? pendingReference.id : undefined} /> : screen === "Chatbot" ? <ChatScreen onOpenReference={(reference) => { setPendingReference(reference); setScreen(reference.type === "lesson" ? "Learning" : "Scenario"); }} /> : screen === "Profile" ? <ProfileScreen user={user} onLogout={onLogout} progress={progress} onEdit={() => { setReturnToProfile(true); setShowOnboarding(true); }} /> : <ComingSoon screen="Forum" />}</div></main>
     <nav aria-label="Mobile navigation" className="bottom-nav">{screens.map(({ name, icon: Icon }) => <button key={name} className={screen === name ? "selected" : ""} aria-current={screen === name ? "page" : undefined} onClick={() => setScreen(name)}><Icon size={20} /><span>{name}</span></button>)}</nav>
   </div>;
 }
