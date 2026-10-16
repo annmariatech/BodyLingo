@@ -445,11 +445,42 @@ function OnboardingScreen({ initial, onSaved }: { initial?: Partial<Preferences>
   </section>;
 }
 
-function ProfileScreen({ user, onLogout, onEdit, progress }: { user: AuthUser; onLogout: () => void; onEdit: () => void; progress: LearningProgress | null }) {
+function ProfileScreen({ user, onLogout, onEdit, onLearning, onScenarios, progress }: { user: AuthUser; onLogout: () => void; onEdit: () => void; onLearning: () => void; onScenarios: () => void; progress: LearningProgress | null }) {
   const preferences = user.preferences;
+  const [scenarioProgress, setScenarioProgress] = useState<ScenarioProgress | null>(null);
+  const [lessons, setLessons] = useState<LessonSummary[]>([]);
+  const [profileProgress, setProfileProgress] = useState<LearningProgress | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    let mounted = true;
+    Promise.all([
+      apiRequest<ScenarioProgress>("/api/scenarios/progress"),
+      apiRequest<LessonSummary[]>("/api/learning/recommendations"),
+      apiRequest<LearningProgress>("/api/learning/progress"),
+    ]).then(([scenarios, catalog, currentProgress]) => {
+      if (!mounted) return;
+      setScenarioProgress(scenarios);
+      setLessons(catalog);
+      setProfileProgress(currentProgress);
+    }).catch((cause) => {
+      if (mounted) setError(cause instanceof Error ? cause.message : "Some profile details could not be loaded.");
+    }).finally(() => { if (mounted) setLoading(false); });
+    return () => { mounted = false; };
+  }, []);
+  const lessonTitles = new Map(lessons.map((lesson) => [lesson.id, lesson.title]));
+  const currentProgress = profileProgress ?? progress;
+  const completedLessons = currentProgress?.completed_lessons ?? [];
+  const lockedLessons = lessons.filter((lesson) => lesson.locked);
   return <section className="profile-layout"><div className="profile-title"><p className="eyebrow">YOUR SPACE</p><h1>Profile & preferences</h1><p>Make this learning experience feel like yours.</p></div><article className="profile-card"><div className="profile-avatar">{user.username.slice(0, 1).toUpperCase()}</div><div className="profile-identity"><h2>{user.username}</h2><p>{user.email}</p></div><span className="profile-badge"><ShieldCheck size={15} /> Account</span></article>
-    <article className="preferences-card"><div className="preferences-icon"><Heart size={19} /></div><div><h3>Your learning preferences</h3><p>{preferences?.topics?.length ? preferences.topics.join(" · ") : "No topics selected yet. You can skip preferences and still use every free lesson."}</p>{preferences?.cultural_contexts?.length ? <p>Cultural contexts: {preferences.cultural_contexts.join(", ")}</p> : null}<button className="text-button profile-edit" onClick={onEdit}>Edit preferences</button></div></article>
-    <article className="profile-progress"><h3>Learning progress</h3><div><span>{progress?.completed_lessons.length ?? "—"}<small>completed lessons</small></span><span>{progress?.correct_answers ?? "—"}<small>correct answers</small></span><span>{progress?.due_reviews ?? "—"}<small>reviews due</small></span></div><p>{user.is_premium ? "Demo premium enabled" : "Free learning access"}</p></article>
+    <article className="preferences-card"><div className="preferences-icon"><Heart size={19} /></div><div className="preferences-content"><h3>Your learning preferences</h3><p><strong>Topics</strong>{preferences?.topics?.length ? preferences.topics.join(" · ") : "Not selected"}</p><p><strong>Situations</strong>{preferences?.situations?.length ? preferences.situations.join(" · ") : "Not selected"}</p><p><strong>Explanation style</strong>{preferences?.explanation_style ?? "balanced"}</p><p><strong>Communication preferences</strong>{preferences?.communication_preferences?.length ? preferences.communication_preferences.join(" · ") : "Not selected"}</p><p><strong>Cultural contexts</strong>{preferences?.cultural_contexts?.length ? preferences.cultural_contexts.join(" · ") : "Not selected"}</p><button className="text-button profile-edit" onClick={onEdit}>Edit preferences</button></div></article>
+    {error && <p className="inline-error" role="alert">{error}</p>}
+    <article className="profile-progress"><div className="profile-section-heading"><h3>Learning progress</h3><button className="text-button" onClick={onLearning}>Open learning</button></div><div><span>{currentProgress?.completed_lessons.length ?? "—"}<small>completed lessons</small></span><span>{currentProgress?.correct_answers ?? "—"}<small>correct answers</small></span><span>{currentProgress?.due_reviews ?? "—"}<small>reviews due</small></span></div>
+      <h4>Completed lessons</h4>{completedLessons.length ? <ul className="profile-resource-list">{completedLessons.map((id) => <li key={id}>{lessonTitles.get(id) ?? id}</li>)}</ul> : <p>{loading ? "Loading lesson progress…" : "No completed lessons yet. Your learning progress will appear here."}</p>}
+      {Boolean(currentProgress?.due_reviews) && <button className="button button-quiet profile-action" onClick={onLearning}>Review {currentProgress?.due_reviews} {currentProgress?.due_reviews === 1 ? "question" : "questions"} due</button>}
+    </article>
+    <article className="profile-progress scenario-history"><div className="profile-section-heading"><h3>Scenario practice</h3><button className="text-button" onClick={onScenarios}>Open scenarios</button></div><p>{scenarioProgress?.completed_scenarios.length ?? (loading ? "—" : 0)} scenarios completed</p>{scenarioProgress?.sessions.length ? <ul className="scenario-history-list">{scenarioProgress.sessions.slice(0, 5).map((session, index) => <li key={`${session.scenario_id}-${session.started_at}-${index}`}><span><strong>{session.title}</strong><small>{session.response_count} {session.response_count === 1 ? "choice" : "choices"} · Started {new Date(session.started_at).toLocaleDateString()}</small></span><span className={`history-status ${session.is_completed ? "complete" : "in-progress"}`}>{session.is_completed ? "Completed" : "In progress"}</span></li>)}</ul> : <p>{loading ? "Loading scenario history…" : "Scenario sessions you start will be saved here."}</p>}</article>
+    <article className="profile-progress entitlement-card"><div className="profile-section-heading"><h3>Learning access</h3><span className={`entitlement-badge ${user.is_premium ? "premium" : "free"}`}>{user.is_premium ? "Premium" : "Free"}</span></div><p>{user.is_premium ? "Demo premium access is enabled for this account." : "You have access to free lessons. No payment has been processed."}</p>{lockedLessons.length > 0 && <><h4>Advanced lessons</h4><ul className="profile-resource-list locked-list">{lockedLessons.map((lesson) => <li key={lesson.id}><ShieldCheck size={14} /> {lesson.title}</li>)}</ul><button className="text-button" onClick={onLearning}>View lesson catalog</button></>}</article>
     <button className="button button-quiet logout-button" onClick={onLogout}><LogOut size={17} /> Sign out</button></section>;
 }
 
@@ -469,8 +500,9 @@ function AppShell({ user, onUserUpdate, onLogout, onboardingPending }: { user: A
   }
 
   return <div className="app-shell">
+    <a className="skip-link" href="#main-content">Skip to main content</a>
     <aside className="sidebar"><a className="brand" href="#home"><span className="brand-mark">b.</span> bodylingo</a><div className="sidebar-label">YOUR SPACE</div><nav aria-label="Main navigation" className="side-nav">{screens.map(({ name, icon: Icon }) => <button key={name} className={`nav-link ${screen === name ? "active" : ""}`} aria-current={screen === name ? "page" : undefined} onClick={() => setScreen(name)}><Icon size={19} strokeWidth={1.8} /><span>{name}</span>{name === "Learning" && <span className="nav-dot" />}</button>)}</nav><div className="sidebar-bottom"><div className="sidebar-mascot">🐧<div><strong>You’ve got this!</strong><span>Curiosity looks good on you.</span></div></div><button className="user-mini" onClick={() => setScreen("Profile")}><span className="mini-avatar">{user.username.slice(0, 1).toUpperCase()}</span><span><strong>{user.username}</strong><small>My profile</small></span><ChevronRight size={16} /></button></div></aside>
-    <main className="main-column"><header className="topbar"><div className="mobile-brand"><span className="brand-mark">b.</span> bodylingo</div><span className="topbar-greeting">A little more understanding, every day <span>✦</span></span><button className="top-avatar" aria-label="Open profile" onClick={() => setScreen("Profile")}>{user.username.slice(0, 1).toUpperCase()}</button></header><div className="content-area" key={`${screen}-${showOnboarding}`}>{showOnboarding ? <OnboardingScreen initial={user.preferences} onSaved={savePreferences} /> : screen === "Learning" ? <LearningScreen onProgress={setProgress} initialLessonId={pendingReference?.type === "lesson" ? pendingReference.id : undefined} /> : screen === "Scenario" ? <ScenarioScreen initialScenarioId={pendingReference?.type === "scenario" ? pendingReference.id : undefined} /> : screen === "Chatbot" ? <ChatScreen onOpenReference={(reference) => { setPendingReference(reference); setScreen(reference.type === "lesson" ? "Learning" : "Scenario"); }} /> : screen === "Forum" ? <ForumScreen /> : <ProfileScreen user={user} onLogout={onLogout} progress={progress} onEdit={() => { setReturnToProfile(true); setShowOnboarding(true); }} />}</div></main>
+    <main className="main-column" id="main-content" tabIndex={-1}><header className="topbar"><div className="mobile-brand"><span className="brand-mark">b.</span> bodylingo</div><span className="topbar-greeting">A little more understanding, every day <span>✦</span></span><button className="top-avatar" aria-label="Open profile" onClick={() => setScreen("Profile")}>{user.username.slice(0, 1).toUpperCase()}</button></header><div className="content-area" key={`${screen}-${showOnboarding}`}>{showOnboarding ? <OnboardingScreen initial={user.preferences} onSaved={savePreferences} /> : screen === "Learning" ? <LearningScreen onProgress={setProgress} initialLessonId={pendingReference?.type === "lesson" ? pendingReference.id : undefined} /> : screen === "Scenario" ? <ScenarioScreen initialScenarioId={pendingReference?.type === "scenario" ? pendingReference.id : undefined} /> : screen === "Chatbot" ? <ChatScreen onOpenReference={(reference) => { setPendingReference(reference); setScreen(reference.type === "lesson" ? "Learning" : "Scenario"); }} /> : screen === "Forum" ? <ForumScreen /> : <ProfileScreen user={user} onLogout={onLogout} progress={progress} onEdit={() => { setReturnToProfile(true); setShowOnboarding(true); }} onLearning={() => setScreen("Learning")} onScenarios={() => setScreen("Scenario")} />}</div></main>
     <nav aria-label="Mobile navigation" className="bottom-nav">{screens.map(({ name, icon: Icon }) => <button key={name} className={screen === name ? "selected" : ""} aria-current={screen === name ? "page" : undefined} onClick={() => setScreen(name)}><Icon size={20} /><span>{name}</span></button>)}</nav>
   </div>;
 }

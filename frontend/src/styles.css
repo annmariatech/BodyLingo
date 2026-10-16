@@ -22,7 +22,9 @@
 body { margin: 0; min-width: 320px; min-height: 100vh; }
 button, input { font: inherit; }
 button { cursor: pointer; }
-button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid #9bc6aa; outline-offset: 3px; }
+button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible { outline: 3px solid #9bc6aa; outline-offset: 3px; }
+.skip-link { position: fixed; z-index: 20; top: 8px; left: 8px; transform: translateY(-150%); padding: 10px 14px; border-radius: 8px; background: #285640; color: #fff; font-size: 13px; font-weight: 700; }
+.skip-link:focus { transform: translateY(0); }
 a { color: inherit; text-decoration: none; }
 .app-loading { display: grid; place-items: center; min-height: 100vh; color: var(--muted); gap: 12px; }
 .loading-dot { width: 11px; height: 11px; display: inline-block; background: #77a286; border-radius: 50%; animation: pulse 1s ease-in-out infinite alternate; }
@@ -148,6 +150,7 @@ a { color: inherit; text-decoration: none; }
 .preferences-card { display: flex; align-items: flex-start; gap: 13px; margin-top: 15px; padding: 18px; border: 1px solid #ede8d9; border-radius: 12px; background: #fbf9f0; }
 .preferences-icon { width: 35px; height: 35px; display: grid; flex: 0 0 auto; place-items: center; border-radius: 11px; color: #ac8262; background: #f4ecdc; }
 .preferences-card h3 { margin: 1px 0 6px; color: #5d5949; font-size: 12px; }.preferences-card p { margin: 0; color: #8b8674; font-size: 11px; line-height: 1.6; }
+.preferences-content { flex: 1; min-width: 0; }.preferences-content p { margin-top: 8px; overflow-wrap: anywhere; }.preferences-content p strong { display: block; color: #6d6a5a; font-size: 10px; }
 .button-quiet { color: #8a7068; background: #fff; border: 1px solid #eee1dc; }.button-quiet:hover { background: #fff4ef; }
 .logout-button { margin-top: 17px; }
 .bottom-nav { display: none; }
@@ -205,6 +208,16 @@ a { color: inherit; text-decoration: none; }
 .profile-progress > div span { color: #3d624a; font-size: 21px; font-weight: 750; }
 .profile-progress small { display: block; color: #89958e; font-size: 9px; font-weight: 500; }
 .profile-progress > p { color: #829186; font-size: 10px; }
+.profile-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }.profile-section-heading > .text-button { flex: 0 0 auto; }
+.profile-progress h4 { margin: 19px 0 8px; color: #68786e; font-size: 11px; }
+.profile-resource-list { display: flex; flex-wrap: wrap; gap: 7px 18px; margin: 0; padding-left: 18px; color: #78867d; font-size: 11px; line-height: 1.65; }
+.profile-action { margin-top: 14px; }
+.scenario-history-list { display: grid; gap: 8px; margin: 13px 0 0; padding: 0; list-style: none; }
+.scenario-history-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 12px; border: 1px solid #edf0eb; border-radius: 9px; background: #fbfcfa; }
+.scenario-history-list li > span:first-child { display: grid; gap: 4px; min-width: 0; }.scenario-history-list strong { color: #57685d; font-size: 11px; }.scenario-history-list small { color: #909b94; font-size: 9px; }
+.history-status { flex: 0 0 auto; padding: 5px 8px; border-radius: 14px; font-size: 9px; font-weight: 700; }.history-status.complete { color: #44724f; background: #eaf4e9; }.history-status.in-progress { color: #8a7550; background: #f8f3e4; }
+.entitlement-badge { display: inline-flex; align-items: center; padding: 6px 10px; border-radius: 15px; font-size: 10px; font-weight: 750; }.entitlement-badge.free { color: #5d7961; background: #edf4ec; }.entitlement-badge.premium { color: #896838; background: #f7efd9; }
+.locked-list { list-style: none; padding-left: 0; }.locked-list li { display: flex; align-items: center; gap: 6px; }.locked-list svg { color: #9b875a; }
 
 /* Branching scenario practice */
 .scenario-library, .scenario-view { max-width: 1040px; margin: 0 auto; }

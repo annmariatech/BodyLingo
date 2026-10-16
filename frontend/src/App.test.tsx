@@ -27,7 +27,7 @@ describe("BodyLingo foundation", () => {
       if (url.endsWith("/api/auth/login")) {
         return new Response(JSON.stringify({ access_token: "token", token_type: "bearer", expires_in: 1800, user }), { status: 200 });
       }
-      if (url.endsWith("/api/learning/recommendations")) return new Response("[]", { status: 200 });
+      if (url.endsWith("/api/learning/recommendations")) return new Response(JSON.stringify([{ id: "space-and-breaks", title: "Noticing When Someone May Need Space", description: "Notice context and offer options.", topic: "Personal space and breaks", difficulty: "beginner", estimated_duration_minutes: 5, learning_objectives: ["Offer options"], communication_context: "Everyday life", is_premium: true, locked: true, completed: false, recommendation_reason: "Continue your learning path" }]), { status: 200 });
       if (url.endsWith("/api/learning/progress")) return new Response(JSON.stringify({ completed_lessons: [], attempts: 0, correct_answers: 0, due_reviews: 0, is_premium: false }), { status: 200 });
       if (url.endsWith("/api/learning/reviews")) return new Response("[]", { status: 200 });
       if (url.endsWith("/api/scenarios/progress")) return new Response(JSON.stringify({ completed_scenarios: [], sessions: [] }), { status: 200 });
@@ -62,6 +62,11 @@ describe("BodyLingo foundation", () => {
     expect(screen.getByText(/fictional sample posts/i)).toBeInTheDocument();
     await actor.type(screen.getByRole("searchbox", { name: "Search forum posts" }), "quiet");
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("/api/forum/posts?query=quiet"), expect.anything()));
+    await actor.click(within(nav).getByRole("button", { name: /Profile/ }));
+    expect(await screen.findByRole("heading", { name: "Profile & preferences" })).toBeInTheDocument();
+    expect(await screen.findByText("Noticing When Someone May Need Space")).toBeInTheDocument();
+    expect(screen.getByText("Free")).toBeInTheDocument();
+    expect(screen.getByText("Scenario sessions you start will be saved here.")).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalled();
   });
 
