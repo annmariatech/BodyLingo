@@ -1,17 +1,17 @@
 import { useEffect, useState, type FormEvent } from "react";
 import {
   BookOpen,
-  Check,
   ChevronRight,
   Compass,
   Heart,
   LogOut,
   MessageCircle,
+  Search,
   ShieldCheck,
   Sparkles,
   UsersRound,
 } from "lucide-react";
-import { apiRequest, clearAuth, saveAuth, type AuthResult, type AuthUser, type LessonSummary, type LessonDetail, type LearningQuestion, type LearningProgress, type LearningReview, type Preferences, type ScenarioDetail, type ScenarioProgress, type ScenarioResponse, type ScenarioStep, type ScenarioSummary, type ChatConversation, type ChatMessage, type ChatReference } from "./api";
+import { apiRequest, clearAuth, saveAuth, type AuthResult, type AuthUser, type LessonSummary, type LessonDetail, type LearningQuestion, type LearningProgress, type LearningReview, type Preferences, type ScenarioDetail, type ScenarioProgress, type ScenarioResponse, type ScenarioStep, type ScenarioSummary, type ChatConversation, type ChatMessage, type ChatReference, type ForumFeed, type ForumPost } from "./api";
 
 type Screen = "Learning" | "Scenario" | "Chatbot" | "Forum" | "Profile";
 const screens: { name: Screen; icon: typeof BookOpen }[] = [
@@ -365,12 +365,39 @@ function ChatScreen({ onOpenReference }: { onOpenReference: (reference: ChatRefe
         {error && <p className="inline-error" role="alert">{error}</p>}<form className="chat-compose" onSubmit={(event) => void send(event)}><textarea aria-label="Message Pip" maxLength={2000} placeholder="Write a question or situation to explore…" value={draft} onChange={(event) => setDraft(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); event.currentTarget.form?.requestSubmit(); } }} />{voiceAvailable && <button type="button" className="button button-quiet" onClick={dictate} aria-label="Use voice input">🎙</button>}<button className="button button-primary" disabled={busy || !draft.trim()}>{busy ? "Thinking…" : "Send"}<ChevronRight size={16} /></button></form><small className="chat-privacy">Your conversations are private to your account. Avoid sharing sensitive personal information.</small></div></div></section>;
 }
 
-function ComingSoon({ screen }: { screen: "Forum" }) {
-  const messages = {
-    Forum: { icon: UsersRound, eyebrow: "LEARN IN COMMUNITY", title: "Many perspectives make room", copy: "A read-only community space with thoughtfully chosen topics is on its way." },
-  }[screen];
-  const Icon = messages.icon;
-  return <section className="coming-card"><div className="coming-illustration"><span className="coming-halo" /><Icon size={38} strokeWidth={1.4} /><span className="coming-star">✦</span></div><p className="eyebrow">{messages.eyebrow}</p><h1>{messages.title}</h1><p>{messages.copy}</p><span className="phase-pill"><Check size={14} /> Foundation phase</span></section>;
+function ForumScreen() {
+  const [posts, setPosts] = useState<ForumPost[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("");
+  const [classification, setClassification] = useState<ForumFeed["classification"]>("deterministic_fallback");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let current = true;
+    const timer = window.setTimeout(() => {
+      const params = new URLSearchParams();
+      if (query.trim()) params.set("query", query.trim());
+      if (category) params.set("category", category);
+      setLoading(true);
+      apiRequest<ForumFeed>(`/api/forum/posts?${params.toString()}`)
+        .then((feed) => { if (!current) return; setPosts(feed.posts); setCategories(feed.categories); setClassification(feed.classification); setError(""); })
+        .catch((cause) => { if (current) setError(cause instanceof Error ? cause.message : "The community feed is unavailable."); })
+        .finally(() => { if (current) setLoading(false); });
+    }, 180);
+    return () => { current = false; window.clearTimeout(timer); };
+  }, [query, category]);
+
+  return <section className="forum-layout"><header className="forum-hero"><div><p className="eyebrow">LEARN IN COMMUNITY</p><h1>Many perspectives make room.</h1><p>Browse gentle prompts and reflections about communication, context, and access.</p></div><div className="forum-illustration" aria-hidden="true">🐧<span>✦</span></div></header>
+    <div className="forum-sample-note"><ShieldCheck size={16} /><span>These are fictional sample posts for the demo. This forum is read-only.</span></div>
+    <div className="forum-controls"><label className="forum-search"><Search size={18} /><input aria-label="Search forum posts" type="search" placeholder="Search topics, phrases, or situations…" value={query} onChange={(event) => setQuery(event.target.value)} /></label><div className="forum-filter-label"><span>Browse by topic</span><small>{classification === "groq" ? "AI-assisted tags" : "Topic tags"}</small></div><div className="forum-categories"><button className={!category ? "selected" : ""} onClick={() => setCategory("")}>All topics</button>{categories.map((item) => <button key={item} className={category === item ? "selected" : ""} onClick={() => setCategory(category === item ? "" : item)}>{item}</button>)}</div></div>
+    {error && <p className="inline-error" role="alert">{error}</p>}
+    <div className="forum-feed" aria-live="polite">{posts.map((post) => <article className="forum-post" key={post.id}><div className="forum-post-meta"><span className="forum-category">{post.category}</span><span>{new Date(post.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span></div><h2>{post.title}</h2><p className="forum-excerpt">{post.excerpt}</p><div className="forum-post-footer"><span className="forum-author"><span className="forum-avatar">{post.author_display_name.slice(0, 1)}</span> {post.author_display_name} <small>· fictional</small></span><div className="forum-tags">{post.topic_tags.map((tag) => <span key={tag}>{tag}</span>)}</div></div></article>)}
+      {loading && <div className="loading-card"><span className="loading-dot" /> Finding conversations…</div>}
+      {!loading && !error && !posts.length && <div className="forum-empty"><span aria-hidden="true">🔎</span><h2>No posts found</h2><p>Try a different phrase or choose another topic.</p><button className="text-button" onClick={() => { setQuery(""); setCategory(""); }}>Clear filters</button></div>}
+    </div>
+  </section>;
 }
 
 const preferenceChoices = {
@@ -443,7 +470,7 @@ function AppShell({ user, onUserUpdate, onLogout, onboardingPending }: { user: A
 
   return <div className="app-shell">
     <aside className="sidebar"><a className="brand" href="#home"><span className="brand-mark">b.</span> bodylingo</a><div className="sidebar-label">YOUR SPACE</div><nav aria-label="Main navigation" className="side-nav">{screens.map(({ name, icon: Icon }) => <button key={name} className={`nav-link ${screen === name ? "active" : ""}`} aria-current={screen === name ? "page" : undefined} onClick={() => setScreen(name)}><Icon size={19} strokeWidth={1.8} /><span>{name}</span>{name === "Learning" && <span className="nav-dot" />}</button>)}</nav><div className="sidebar-bottom"><div className="sidebar-mascot">🐧<div><strong>You’ve got this!</strong><span>Curiosity looks good on you.</span></div></div><button className="user-mini" onClick={() => setScreen("Profile")}><span className="mini-avatar">{user.username.slice(0, 1).toUpperCase()}</span><span><strong>{user.username}</strong><small>My profile</small></span><ChevronRight size={16} /></button></div></aside>
-    <main className="main-column"><header className="topbar"><div className="mobile-brand"><span className="brand-mark">b.</span> bodylingo</div><span className="topbar-greeting">A little more understanding, every day <span>✦</span></span><button className="top-avatar" aria-label="Open profile" onClick={() => setScreen("Profile")}>{user.username.slice(0, 1).toUpperCase()}</button></header><div className="content-area" key={`${screen}-${showOnboarding}`}>{showOnboarding ? <OnboardingScreen initial={user.preferences} onSaved={savePreferences} /> : screen === "Learning" ? <LearningScreen onProgress={setProgress} initialLessonId={pendingReference?.type === "lesson" ? pendingReference.id : undefined} /> : screen === "Scenario" ? <ScenarioScreen initialScenarioId={pendingReference?.type === "scenario" ? pendingReference.id : undefined} /> : screen === "Chatbot" ? <ChatScreen onOpenReference={(reference) => { setPendingReference(reference); setScreen(reference.type === "lesson" ? "Learning" : "Scenario"); }} /> : screen === "Profile" ? <ProfileScreen user={user} onLogout={onLogout} progress={progress} onEdit={() => { setReturnToProfile(true); setShowOnboarding(true); }} /> : <ComingSoon screen="Forum" />}</div></main>
+    <main className="main-column"><header className="topbar"><div className="mobile-brand"><span className="brand-mark">b.</span> bodylingo</div><span className="topbar-greeting">A little more understanding, every day <span>✦</span></span><button className="top-avatar" aria-label="Open profile" onClick={() => setScreen("Profile")}>{user.username.slice(0, 1).toUpperCase()}</button></header><div className="content-area" key={`${screen}-${showOnboarding}`}>{showOnboarding ? <OnboardingScreen initial={user.preferences} onSaved={savePreferences} /> : screen === "Learning" ? <LearningScreen onProgress={setProgress} initialLessonId={pendingReference?.type === "lesson" ? pendingReference.id : undefined} /> : screen === "Scenario" ? <ScenarioScreen initialScenarioId={pendingReference?.type === "scenario" ? pendingReference.id : undefined} /> : screen === "Chatbot" ? <ChatScreen onOpenReference={(reference) => { setPendingReference(reference); setScreen(reference.type === "lesson" ? "Learning" : "Scenario"); }} /> : screen === "Forum" ? <ForumScreen /> : <ProfileScreen user={user} onLogout={onLogout} progress={progress} onEdit={() => { setReturnToProfile(true); setShowOnboarding(true); }} />}</div></main>
     <nav aria-label="Mobile navigation" className="bottom-nav">{screens.map(({ name, icon: Icon }) => <button key={name} className={screen === name ? "selected" : ""} aria-current={screen === name ? "page" : undefined} onClick={() => setScreen(name)}><Icon size={20} /><span>{name}</span></button>)}</nav>
   </div>;
 }

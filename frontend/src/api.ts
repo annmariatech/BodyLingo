@@ -109,6 +109,8 @@ export type ScenarioProgress = {
 export type ChatReference = { type: "lesson" | "scenario"; id: string; title: string };
 export type ChatMessage = { id: string; role: "user" | "assistant"; content: string; references: ChatReference[]; created_at: string };
 export type ChatConversation = { id: string; title: string; created_at: string; updated_at: string; messages: ChatMessage[] };
+export type ForumPost = { id: string; title: string; excerpt: string; author_display_name: string; created_at: string; category: string; topic_tags: string[]; fictional: boolean };
+export type ForumFeed = { posts: ForumPost[]; categories: string[]; classification: "groq" | "deterministic_fallback" };
 
 const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000").replace(/\/$/, "");
 

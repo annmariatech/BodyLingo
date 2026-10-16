@@ -34,6 +34,7 @@ describe("BodyLingo foundation", () => {
       if (url.endsWith("/api/scenarios")) return new Response(JSON.stringify({ scenarios: [{ id: "quiet-teammate-meeting", title: "A teammate becomes quiet", description: "A meeting scenario.", learning_objectives: ["Check in with care"], media_placeholder: "Text-only sample scenario." }] }), { status: 200 });
       if (url.endsWith("/api/scenarios/quiet-teammate-meeting/respond")) return new Response(JSON.stringify({ scenario_id: "quiet-teammate-meeting", feedback: "A private question leaves room for many explanations.", current_step: "check-in", prompt: "They need more time. What next?", choices: [{ id: "send-notes", text: "Offer written notes." }], completed: false }), { status: 200 });
       if (url.endsWith("/api/scenarios/quiet-teammate-meeting")) return new Response(JSON.stringify({ scenario_id: "quiet-teammate-meeting", title: "A teammate becomes quiet", description: "A meeting scenario.", learning_objectives: ["Check in with care"], media_placeholder: "Text-only sample scenario.", current_step: "notice", prompt: "A teammate becomes quiet during the meeting. What do you do?", choices: [{ id: "private-check-in", text: "Check in privately." }] }), { status: 200 });
+      if (url.includes("/api/forum/posts")) return new Response(JSON.stringify({ posts: [{ id: "quiet-post", title: "A quiet moment can mean lots of things", excerpt: "A fictional sample post.", author_display_name: "MapleNotes", created_at: "2026-10-12T15:10:00Z", category: "Everyday communication", topic_tags: ["context"], fictional: true }], categories: ["Everyday communication", "Work & study"], classification: "deterministic_fallback" }), { status: 200 });
       if (url.endsWith("/api/auth/me")) return new Response(JSON.stringify(user), { status: 200 });
       return new Response(null, { status: 204 });
     });
@@ -55,6 +56,12 @@ describe("BodyLingo foundation", () => {
     expect(await screen.findByText("A private question leaves room for many explanations.")).toBeInTheDocument();
     await actor.click(screen.getByRole("button", { name: /continue/i }));
     expect(await screen.findByText("They need more time. What next?")).toBeInTheDocument();
+    await actor.click(within(nav).getByRole("button", { name: /Forum/ }));
+    expect(await screen.findByRole("heading", { name: "Many perspectives make room." })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "A quiet moment can mean lots of things" })).toBeInTheDocument();
+    expect(screen.getByText(/fictional sample posts/i)).toBeInTheDocument();
+    await actor.type(screen.getByRole("searchbox", { name: "Search forum posts" }), "quiet");
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining("/api/forum/posts?query=quiet"), expect.anything()));
     expect(fetchMock).toHaveBeenCalled();
   });
 
