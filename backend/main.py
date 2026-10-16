@@ -7,6 +7,8 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from routers.lessons import router as lessons_router
+
 
 def _configured_origins() -> list[str]:
     """Read allowed browser origins, defaulting to common local dev servers."""
@@ -37,6 +39,8 @@ app.add_middleware(
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],
 )
+
+app.include_router(lessons_router, prefix="/api")
 
 
 @app.get("/health", tags=["health"])
