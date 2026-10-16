@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, StringConstraints
+from pydantic import BaseModel, ConfigDict, StringConstraints, Field
 
 
 ScenarioID = Annotated[
@@ -13,20 +13,20 @@ class ScenarioChoiceResponse(BaseModel):
     """A choice visible to the learner."""
 
     id: ScenarioID
-    label: str
+    text: str
 
 
 class ScenarioStepResponse(BaseModel):
-    """A scenario step shown to the learner."""
+    """The current scenario step shown to the learner."""
 
     scenario_id: ScenarioID
-    node_id: ScenarioID
+    current_step: ScenarioID
     prompt: str
     choices: list[ScenarioChoiceResponse]
 
 
 class ScenarioSummaryResponse(BaseModel):
-    """Basic information for the scenario listing."""
+    """Basic information shown in a scenario listing."""
 
     id: ScenarioID
     title: str
@@ -39,10 +39,8 @@ class ScenarioListResponse(BaseModel):
     scenarios: list[ScenarioSummaryResponse]
 
 
-class ScenarioDetailResponse(ScenarioSummaryResponse):
-    """Scenario details with the initial step."""
-
-    start_step: ScenarioStepResponse
+class ScenarioDetailResponse(ScenarioStepResponse):
+    """Scenario details and its initial step."""
 
 
 class ScenarioRespondRequest(BaseModel):
@@ -50,16 +48,16 @@ class ScenarioRespondRequest(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    node_id: ScenarioID
+    current_step: ScenarioID
     choice_id: ScenarioID
 
 
 class ScenarioRespondResponse(BaseModel):
-    """Feedback and progression after a learner submits a choice."""
+    """Feedback and the next step after a learner submits a choice."""
 
     scenario_id: ScenarioID
-    node_id: ScenarioID
-    choice_id: ScenarioID
     feedback: str | None = None
-    next_node: ScenarioStepResponse | None
+    current_step: ScenarioID | None = None
+    prompt: str | None = None
+    choices: list[ScenarioChoiceResponse] = Field(default_factory=list)
     completed: bool
