@@ -27,6 +27,8 @@ class UserResponse(BaseModel):
     username: str
     email: EmailStr
     created_at: datetime
+    preferences: dict[str, object] = Field(default_factory=dict)
+    is_premium: bool = False
 
 
 class AuthResponse(BaseModel):

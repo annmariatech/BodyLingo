@@ -3,7 +3,7 @@
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from sqlalchemy import DateTime, ForeignKey, String
+from sqlalchemy import Boolean, DateTime, ForeignKey, JSON, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from database import Base
@@ -21,6 +21,8 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(254), unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(String(512))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    preferences: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
+    is_premium: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
 
 class RevokedToken(Base):

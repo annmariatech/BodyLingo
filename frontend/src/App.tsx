@@ -7,12 +7,11 @@ import {
   Heart,
   LogOut,
   MessageCircle,
-  Search,
   ShieldCheck,
   Sparkles,
   UsersRound,
 } from "lucide-react";
-import { apiRequest, clearAuth, saveAuth, type AuthResult, type AuthUser, type LessonSummary } from "./api";
+import { apiRequest, clearAuth, saveAuth, type AuthResult, type AuthUser, type LessonSummary, type LessonDetail, type LearningQuestion, type LearningProgress, type LearningReview, type Preferences } from "./api";
 
 type Screen = "Learning" | "Scenario" | "Chatbot" | "Forum" | "Profile";
 const screens: { name: Screen; icon: typeof BookOpen }[] = [
@@ -83,14 +82,108 @@ function AuthScreen({ onAuthenticated }: { onAuthenticated: (user: AuthUser) => 
   );
 }
 
-function LearningScreen() {
+function LearningScreen({ onProgress }: { onProgress: (progress: LearningProgress) => void }) {
   const [lessons, setLessons] = useState<LessonSummary[]>([]);
+  const [progress, setProgress] = useState<LearningProgress | null>(null);
+  const [reviews, setReviews] = useState<LearningReview[]>([]);
   const [error, setError] = useState("");
+  const [activeLesson, setActiveLesson] = useState<LessonDetail | null>(null);
+  const [questions, setQuestions] = useState<LearningQuestion[]>([]);
+  const [questionIndex, setQuestionIndex] = useState(0);
+  const [selectedOption, setSelectedOption] = useState("");
+  const [feedback, setFeedback] = useState<{ correct: boolean; explanation: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [recommendationError, setRecommendationError] = useState("");
+
+  async function refresh() {
+    try {
+      const [catalog, currentProgress, scheduledReviews] = await Promise.all([
+        apiRequest<LessonSummary[]>("/api/learning/recommendations"),
+        apiRequest<LearningProgress>("/api/learning/progress"),
+        apiRequest<LearningReview[]>("/api/learning/reviews"),
+      ]);
+      setLessons(catalog);
+      setProgress(currentProgress);
+      setReviews(scheduledReviews);
+      onProgress(currentProgress);
+      setError("");
+    } catch (cause) {
+      setRecommendationError(cause instanceof Error ? cause.message : "Learning data is unavailable.");
+    }
+  }
+
   useEffect(() => {
-    apiRequest<LessonSummary[]>("/api/lessons")
-      .then(setLessons)
-      .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : "Lessons are unavailable."));
+    void refresh();
   }, []);
+
+  async function openLesson(lessonId: string, reviewQuestionId?: string) {
+    setBusy(true);
+    setError("");
+    try {
+      const [lesson, quiz] = await Promise.all([
+        apiRequest<LessonDetail>(`/api/lessons/${lessonId}`),
+        apiRequest<LearningQuestion[]>(`/api/learning/lessons/${lessonId}/questions`),
+      ]);
+      setActiveLesson(lesson);
+      setQuestions(quiz);
+      setQuestionIndex(reviewQuestionId ? Math.max(0, quiz.findIndex((item) => item.id === reviewQuestionId)) : 0);
+      setSelectedOption("");
+      setFeedback(null);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "This lesson could not be opened.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function answerQuestion() {
+    const question = questions[questionIndex];
+    if (!question || !selectedOption) return;
+    setBusy(true);
+    try {
+      const result = await apiRequest<{ correct: boolean; explanation: string; completed: boolean }>(
+        `/api/learning/lessons/${activeLesson?.id}/attempts/${question.id}`,
+        { method: "POST", body: JSON.stringify({ question_id: question.id, selected_option_id: selectedOption }) },
+      );
+      setFeedback(result);
+      if (result.correct) await refresh();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Your answer could not be saved.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function nextQuestion() {
+    if (questionIndex + 1 >= questions.length) {
+      setActiveLesson(null);
+      void refresh();
+      return;
+    }
+    setQuestionIndex((index) => index + 1);
+    setSelectedOption("");
+    setFeedback(null);
+  }
+
+  if (activeLesson) {
+    const question = questions[questionIndex];
+    return <section className="lesson-view">
+      <button className="text-button lesson-back" onClick={() => setActiveLesson(null)}>← Back to lessons</button>
+      <p className="eyebrow">{activeLesson.topic} · {activeLesson.estimated_duration_minutes} MIN</p>
+      <h1>{activeLesson.title}</h1>
+      <p className="lesson-introduction">{activeLesson.introduction}</p>
+      <article className="lesson-teaching"><span className="eyebrow">A CUE TO NOTICE</span><h2>{activeLesson.communication_cue}</h2><p>{activeLesson.explanation}</p><strong>{activeLesson.key_takeaway}</strong></article>
+      {question && <article className="quiz-card">
+        <div className="quiz-progress">QUESTION {questionIndex + 1} OF {questions.length}</div>
+        <h2>{question.prompt}</h2>
+        <div className="quiz-options" role="radiogroup" aria-label="Answer choices">
+          {question.options.map((option) => <button key={option.id} role="radio" aria-checked={selectedOption === option.id} className={`quiz-option ${selectedOption === option.id ? "chosen" : ""}`} disabled={Boolean(feedback)} onClick={() => setSelectedOption(option.id)}>{option.text}</button>)}
+        </div>
+        {feedback && <p className={`quiz-feedback ${feedback.correct ? "right" : "try-again"}`} role="status"><strong>{feedback.correct ? "That’s right." : "Not quite yet."}</strong> {feedback.explanation}</p>}
+        {!feedback ? <button className="button button-primary" disabled={!selectedOption || busy} onClick={() => void answerQuestion()}>{busy ? "Saving…" : "Check answer"}</button> : feedback.correct ? <button className="button button-primary" onClick={nextQuestion}>{questionIndex + 1 === questions.length ? "Finish lesson" : "Next question"}<ChevronRight size={16} /></button> : <button className="button button-primary" onClick={() => { setFeedback(null); setSelectedOption(""); }}>Try again</button>}
+      </article>}
+    </section>;
+  }
 
   return <>
     <div className="welcome-banner">
@@ -98,13 +191,16 @@ function LearningScreen() {
       <div className="banner-penguin" aria-hidden="true">🐧<span>Hi, I’m Pip!</span></div>
       <div className="banner-doodle doodle-one">✳</div><div className="banner-doodle doodle-two">✦</div>
     </div>
-    <div className="section-heading"><div><p className="eyebrow">START EXPLORING</p><h2>Lessons for real life</h2></div><button className="text-button" aria-label="Search lessons"><Search size={17} /> Explore topics</button></div>
+    {progress && <div className="learning-progress"><span><strong>{progress.completed_lessons.length}</strong> lessons completed</span><span><strong>{progress.correct_answers}</strong> correct answers</span><span><strong>{progress.due_reviews}</strong> reviews due</span></div>}
+    {reviews.length > 0 && <section className="review-panel"><div><p className="eyebrow">SPACED PRACTICE</p><h2>Questions to revisit</h2><p>Incorrect answers return here on a gentle schedule. Answering a review correctly spaces the next revisit further out.</p></div><div className="review-list">{reviews.map((review) => <button key={`${review.lesson_id}-${review.question.id}`} onClick={() => void openLesson(review.lesson_id, review.question.id)} disabled={!review.is_due} className="review-item"><span>{review.is_due ? "Ready to review" : `Due ${new Date(review.due_at).toLocaleDateString()}`}</span><strong>{review.lesson_title}</strong><small>{review.question.prompt}</small></button>)}</div></section>}
+    <div className="section-heading"><div><p className="eyebrow">CHOSEN FOR YOU</p><h2>Lessons for real life</h2></div><span className="recommendation-label"><Sparkles size={15} /> Personalised path</span></div>
     {error && <p className="inline-error" role="alert">{error}</p>}
+    {recommendationError && <p className="inline-error" role="alert">{recommendationError}</p>}
     <div className="lesson-grid">
-      {lessons.map((lesson, index) => <article className={`lesson-card lesson-tone-${index % 4}`} key={lesson.id}>
+      {lessons.map((lesson, index) => <article className={`lesson-card lesson-tone-${index % 4} ${lesson.locked ? "locked" : ""}`} key={lesson.id}>
         <div className="lesson-card-top"><span className="lesson-icon"><BookOpen size={20} /></span><span className="lesson-duration">{lesson.estimated_duration_minutes} min</span></div>
-        <p className="lesson-topic">{lesson.topic}</p><h3>{lesson.title}</h3><p className="lesson-description">{lesson.description}</p>
-        <div className="lesson-card-bottom"><span className="difficulty">{lesson.difficulty}</span><button aria-label={`Open ${lesson.title}`} className="round-arrow"><ChevronRight size={18} /></button></div>
+        <p className="lesson-topic">{lesson.topic}{lesson.is_premium ? " · PREMIUM" : ""}</p><h3>{lesson.title}</h3><p className="lesson-description">{lesson.description}</p><small className="recommendation-reason">{lesson.recommendation_reason}</small>
+        <div className="lesson-card-bottom"><span className="difficulty">{lesson.completed ? "completed" : lesson.difficulty}</span><button aria-label={`${lesson.locked ? "Locked" : "Open"} ${lesson.title}`} className="round-arrow" disabled={lesson.locked || busy} onClick={() => void openLesson(lesson.id)}>{lesson.locked ? <ShieldCheck size={16} /> : <ChevronRight size={18} />}</button></div>
       </article>)}
     </div>
     {!lessons.length && !error && <div className="loading-card"><span className="loading-dot" /> Finding your first lessons…</div>}
@@ -122,15 +218,76 @@ function ComingSoon({ screen }: { screen: Exclude<Screen, "Learning" | "Profile"
   return <section className="coming-card"><div className="coming-illustration"><span className="coming-halo" /><Icon size={38} strokeWidth={1.4} /><span className="coming-star">✦</span></div><p className="eyebrow">{messages.eyebrow}</p><h1>{messages.title}</h1><p>{messages.copy}</p><span className="phase-pill"><Check size={14} /> Foundation phase</span></section>;
 }
 
-function ProfileScreen({ user, onLogout }: { user: AuthUser; onLogout: () => void }) {
-  return <section className="profile-layout"><div className="profile-title"><p className="eyebrow">YOUR SPACE</p><h1>Profile & preferences</h1><p>Make this learning experience feel like yours.</p></div><article className="profile-card"><div className="profile-avatar">{user.username.slice(0, 1).toUpperCase()}</div><div className="profile-identity"><h2>{user.username}</h2><p>{user.email}</p></div><span className="profile-badge"><ShieldCheck size={15} /> Account</span></article><article className="preferences-card"><div className="preferences-icon"><Heart size={19} /></div><div><h3>Your preferences, your choice</h3><p>Preference editing and personalized learning paths are coming in the learning phase. You never need to share a diagnosis to use BodyLingo.</p></div></article><button className="button button-quiet logout-button" onClick={onLogout}><LogOut size={17} /> Sign out</button></section>;
+const preferenceChoices = {
+  topics: ["Facial expressions", "Tone of voice", "Eye contact", "Personal space and breaks", "Gestures and culture", "Clarifying needs"],
+  situations: ["Everyday conversations", "Friendships", "Meetings and teamwork", "New cultural settings", "Busy or noisy places"],
+  communication_preferences: ["Written steps", "Extra time to think", "Direct language", "Lower sensory load", "Knowing the plan ahead"],
+  cultural_contexts: ["Japan", "Western Europe", "North America", "South Asia", "Explore varied contexts"],
+};
+
+function PreferenceGroup({ title, choices, selected, onChange }: { title: string; choices: string[]; selected: string[]; onChange: (value: string[]) => void }) {
+  return <fieldset className="preference-group"><legend>{title}</legend><div className="preference-options">{choices.map((choice) => <label key={choice} className={`preference-choice ${selected.includes(choice) ? "checked" : ""}`}><input type="checkbox" checked={selected.includes(choice)} onChange={(event) => onChange(event.target.checked ? [...selected, choice] : selected.filter((item) => item !== choice))} />{choice}</label>)}</div></fieldset>;
 }
 
-function AppShell({ user, onLogout }: { user: AuthUser; onLogout: () => void }) {
+function OnboardingScreen({ initial, onSaved }: { initial?: Partial<Preferences>; onSaved: (preferences: Preferences) => Promise<void> }) {
+  const [topics, setTopics] = useState(initial?.topics ?? []);
+  const [situations, setSituations] = useState(initial?.situations ?? []);
+  const [communication, setCommunication] = useState(initial?.communication_preferences ?? []);
+  const [cultures, setCultures] = useState(initial?.cultural_contexts ?? []);
+  const [style, setStyle] = useState(initial?.explanation_style ?? "balanced");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  async function save(skipped: boolean) {
+    setBusy(true);
+    setError("");
+    try {
+      await onSaved({ topics, situations, explanation_style: style, communication_preferences: communication, cultural_contexts: cultures, skipped });
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Your preferences could not be saved.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return <section className="onboarding-layout"><div className="onboarding-heading"><div className="onboarding-penguin" aria-hidden="true">🐧</div><p className="eyebrow">A PATH THAT FITS YOU</p><h1>What would you like to explore?</h1><p>Choose anything that feels useful. These preferences shape lesson recommendations; you can change them later. No diagnosis or personal explanation is needed.</p></div>
+    <div className="onboarding-groups">
+      <PreferenceGroup title="Topics" choices={preferenceChoices.topics} selected={topics} onChange={setTopics} />
+      <PreferenceGroup title="Situations to practise" choices={preferenceChoices.situations} selected={situations} onChange={setSituations} />
+      <fieldset className="preference-group"><legend>Explanation style</legend><div className="style-options">{[["balanced", "A mix of examples and clear steps"], ["examples", "More examples"], ["concise", "Short and direct"]].map(([value, label]) => <label key={value}><input type="radio" name="explanation-style" value={value} checked={style === value} onChange={() => setStyle(value)} />{label}</label>)}</div></fieldset>
+      <PreferenceGroup title="Communication preferences (optional)" choices={preferenceChoices.communication_preferences} selected={communication} onChange={setCommunication} />
+      <PreferenceGroup title="Cultural contexts to learn about (optional)" choices={preferenceChoices.cultural_contexts} selected={cultures} onChange={setCultures} />
+    </div>
+    {error && <p className="form-error" role="alert">{error}</p>}
+    <div className="onboarding-actions"><button className="button button-quiet" disabled={busy} onClick={() => void save(true)}>Skip for now</button><button className="button button-primary" disabled={busy} onClick={() => void save(false)}>{busy ? "Saving…" : "Save and continue"}<ChevronRight size={17} /></button></div>
+  </section>;
+}
+
+function ProfileScreen({ user, onLogout, onEdit, progress }: { user: AuthUser; onLogout: () => void; onEdit: () => void; progress: LearningProgress | null }) {
+  const preferences = user.preferences;
+  return <section className="profile-layout"><div className="profile-title"><p className="eyebrow">YOUR SPACE</p><h1>Profile & preferences</h1><p>Make this learning experience feel like yours.</p></div><article className="profile-card"><div className="profile-avatar">{user.username.slice(0, 1).toUpperCase()}</div><div className="profile-identity"><h2>{user.username}</h2><p>{user.email}</p></div><span className="profile-badge"><ShieldCheck size={15} /> Account</span></article>
+    <article className="preferences-card"><div className="preferences-icon"><Heart size={19} /></div><div><h3>Your learning preferences</h3><p>{preferences?.topics?.length ? preferences.topics.join(" · ") : "No topics selected yet. You can skip preferences and still use every free lesson."}</p>{preferences?.cultural_contexts?.length ? <p>Cultural contexts: {preferences.cultural_contexts.join(", ")}</p> : null}<button className="text-button profile-edit" onClick={onEdit}>Edit preferences</button></div></article>
+    <article className="profile-progress"><h3>Learning progress</h3><div><span>{progress?.completed_lessons.length ?? "—"}<small>completed lessons</small></span><span>{progress?.correct_answers ?? "—"}<small>correct answers</small></span><span>{progress?.due_reviews ?? "—"}<small>reviews due</small></span></div><p>{user.is_premium ? "Demo premium enabled" : "Free learning access"}</p></article>
+    <button className="button button-quiet logout-button" onClick={onLogout}><LogOut size={17} /> Sign out</button></section>;
+}
+
+function AppShell({ user, onUserUpdate, onLogout, onboardingPending }: { user: AuthUser; onUserUpdate: (user: AuthUser) => void; onLogout: () => void; onboardingPending: boolean }) {
   const [screen, setScreen] = useState<Screen>("Learning");
+  const [showOnboarding, setShowOnboarding] = useState(onboardingPending);
+  const [returnToProfile, setReturnToProfile] = useState(false);
+  const [progress, setProgress] = useState<LearningProgress | null>(null);
+
+  async function savePreferences(preferences: Preferences) {
+    const saved = await apiRequest<Preferences>("/api/learning/preferences", { method: "PUT", body: JSON.stringify(preferences) });
+    onUserUpdate({ ...user, preferences: saved });
+    setShowOnboarding(false);
+    setScreen(returnToProfile ? "Profile" : "Learning");
+    setReturnToProfile(false);
+  }
+
   return <div className="app-shell">
     <aside className="sidebar"><a className="brand" href="#home"><span className="brand-mark">b.</span> bodylingo</a><div className="sidebar-label">YOUR SPACE</div><nav aria-label="Main navigation" className="side-nav">{screens.map(({ name, icon: Icon }) => <button key={name} className={`nav-link ${screen === name ? "active" : ""}`} aria-current={screen === name ? "page" : undefined} onClick={() => setScreen(name)}><Icon size={19} strokeWidth={1.8} /><span>{name}</span>{name === "Learning" && <span className="nav-dot" />}</button>)}</nav><div className="sidebar-bottom"><div className="sidebar-mascot">🐧<div><strong>You’ve got this!</strong><span>Curiosity looks good on you.</span></div></div><button className="user-mini" onClick={() => setScreen("Profile")}><span className="mini-avatar">{user.username.slice(0, 1).toUpperCase()}</span><span><strong>{user.username}</strong><small>My profile</small></span><ChevronRight size={16} /></button></div></aside>
-    <main className="main-column"><header className="topbar"><div className="mobile-brand"><span className="brand-mark">b.</span> bodylingo</div><span className="topbar-greeting">A little more understanding, every day <span>✦</span></span><button className="top-avatar" aria-label="Open profile" onClick={() => setScreen("Profile")}>{user.username.slice(0, 1).toUpperCase()}</button></header><div className="content-area" key={screen}>{screen === "Learning" ? <LearningScreen /> : screen === "Profile" ? <ProfileScreen user={user} onLogout={onLogout} /> : <ComingSoon screen={screen} />}</div></main>
+    <main className="main-column"><header className="topbar"><div className="mobile-brand"><span className="brand-mark">b.</span> bodylingo</div><span className="topbar-greeting">A little more understanding, every day <span>✦</span></span><button className="top-avatar" aria-label="Open profile" onClick={() => setScreen("Profile")}>{user.username.slice(0, 1).toUpperCase()}</button></header><div className="content-area" key={`${screen}-${showOnboarding}`}>{showOnboarding ? <OnboardingScreen initial={user.preferences} onSaved={savePreferences} /> : screen === "Learning" ? <LearningScreen onProgress={setProgress} /> : screen === "Profile" ? <ProfileScreen user={user} onLogout={onLogout} progress={progress} onEdit={() => { setReturnToProfile(true); setShowOnboarding(true); }} /> : <ComingSoon screen={screen} />}</div></main>
     <nav aria-label="Mobile navigation" className="bottom-nav">{screens.map(({ name, icon: Icon }) => <button key={name} className={screen === name ? "selected" : ""} aria-current={screen === name ? "page" : undefined} onClick={() => setScreen(name)}><Icon size={20} /><span>{name}</span></button>)}</nav>
   </div>;
 }
@@ -138,13 +295,17 @@ function AppShell({ user, onLogout }: { user: AuthUser; onLogout: () => void }) 
 export default function App() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [checking, setChecking] = useState(true);
+  const [onboardingPending, setOnboardingPending] = useState(false);
   useEffect(() => {
     if (!localStorage.getItem("bodylingo_access_token")) {
       setChecking(false);
       return;
     }
     apiRequest<AuthUser>("/api/auth/me")
-      .then(setUser)
+      .then((currentUser) => {
+        setUser(currentUser);
+        setOnboardingPending(!currentUser.preferences || Object.keys(currentUser.preferences).length === 0);
+      })
       .catch(() => clearAuth())
       .finally(() => setChecking(false));
   }, []);
@@ -156,6 +317,9 @@ export default function App() {
   }
 
   if (checking) return <div className="app-loading"><span className="loading-dot" /> Opening your space…</div>;
-  if (!user) return <AuthScreen onAuthenticated={setUser} />;
-  return <AppShell user={user} onLogout={logout} />;
+  if (!user) return <AuthScreen onAuthenticated={(authenticated) => {
+    setUser(authenticated);
+    setOnboardingPending(!authenticated.preferences || Object.keys(authenticated.preferences).length === 0);
+  }} />;
+  return <AppShell user={user} onUserUpdate={setUser} onboardingPending={onboardingPending} onLogout={logout} />;
 }

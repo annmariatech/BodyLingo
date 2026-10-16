@@ -4,7 +4,8 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from database import Base, database_url
-from models import user  # noqa: F401; registers account tables with Base.metadata
+import models.learning  # noqa: F401; registers learning tables with Base.metadata
+import models.user  # noqa: F401; registers account tables with Base.metadata
 
 config = context.config
 config.set_main_option("sqlalchemy.url", database_url().replace("%", "%%"))

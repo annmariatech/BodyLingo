@@ -3,6 +3,17 @@ export type AuthUser = {
   username: string;
   email: string;
   created_at: string;
+  preferences?: Preferences;
+  is_premium?: boolean;
+};
+
+export type Preferences = {
+  topics: string[];
+  situations: string[];
+  explanation_style: string;
+  communication_preferences: string[];
+  cultural_contexts: string[];
+  skipped: boolean;
 };
 
 export type AuthResult = {
@@ -21,6 +32,42 @@ export type LessonSummary = {
   estimated_duration_minutes: number;
   learning_objectives: string[];
   communication_context: string;
+  is_premium?: boolean;
+  locked?: boolean;
+  completed?: boolean;
+  recommendation_reason?: string;
+};
+
+export type LessonDetail = LessonSummary & {
+  introduction: string;
+  communication_cue: string;
+  explanation: string;
+  examples: { situation: string; possible_interpretation: string }[];
+  knowledge_check: { question: string; options: string[] };
+  key_takeaway: string;
+};
+
+export type LearningQuestion = {
+  id: string;
+  prompt: string;
+  options: { id: string; text: string }[];
+  explanation: string;
+};
+
+export type LearningProgress = {
+  completed_lessons: string[];
+  attempts: number;
+  correct_answers: number;
+  due_reviews: number;
+  is_premium: boolean;
+};
+
+export type LearningReview = {
+  lesson_id: string;
+  lesson_title: string;
+  question: LearningQuestion;
+  due_at: string;
+  is_due: boolean;
 };
 
 const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000").replace(/\/$/, "");

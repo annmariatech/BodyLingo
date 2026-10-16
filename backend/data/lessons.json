@@ -113,5 +113,28 @@
     ],
     "knowledge_check": {"question": "Which question checks meaning without assigning blame?", "options": ["“What exactly do you mean by that?”", "“Do you mean today, or would another day work better?”", "“Why are you being unclear?”"], "answer": "“Do you mean today, or would another day work better?”"},
     "key_takeaway": "Ask specific, neutral questions and state the support or communication format that works for you."
+  },
+  {
+    "id": "gestures-and-culture",
+    "title": "Gestures, Culture, and Context",
+    "description": "Explore why gestures can carry different meanings across people and places.",
+    "topic": "gestures and cultural variation",
+    "difficulty": "intermediate",
+    "estimated_duration_minutes": 9,
+    "learning_objectives": [
+      "Recognize that gestures do not have one universal meaning",
+      "Consider setting and cultural context without stereotyping",
+      "Ask respectfully when a gesture is unfamiliar"
+    ],
+    "communication_context": "Travel, cross-cultural conversations, and mixed-background teams.",
+    "introduction": "A gesture can be familiar in one setting and unfamiliar in another. People also use gestures differently as individuals, so context matters more than a memorized rule.",
+    "communication_cue": "A hand movement, posture, or culturally specific sign",
+    "explanation": "Avoid treating a gesture as proof of someone's attitude or intent. Meanings can vary across communities, situations, and individuals. If it matters, describe what you noticed and ask an open question. A person may also prefer not to explain their culture, and that choice deserves respect.",
+    "examples": [
+      {"situation": "A visitor sees a hand gesture they do not recognize.", "possible_interpretation": "It may have a local meaning, be personal emphasis, or be incidental. A respectful question is safer than assuming."},
+      {"situation": "A teammate uses gestures differently from you.", "possible_interpretation": "This may reflect personal style or context; it does not establish agreement, disrespect, or emotion."}
+    ],
+    "knowledge_check": {"question": "You see an unfamiliar gesture. What is a respectful response?", "options": ["Assume it means the same thing everywhere", "Consider context and ask openly if appropriate", "Decide what the person intended"], "answer": "Consider context and ask openly if appropriate"},
+    "key_takeaway": "Gestures can vary; stay curious, avoid stereotypes, and let people describe their own meaning."
   }
 ]

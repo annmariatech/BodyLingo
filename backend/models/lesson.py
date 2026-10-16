@@ -14,6 +14,9 @@ class LessonSummary(BaseModel):
     estimated_duration_minutes: int = Field(gt=0)
     learning_objectives: list[str]
     communication_context: str
+    is_premium: bool = False
+    locked: bool = False
+    completed: bool = False
 
 
 class Lesson(LessonSummary):

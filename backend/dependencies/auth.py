@@ -43,3 +43,25 @@ def get_current_user(
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
+
+
+def get_optional_current_user(
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer_scheme)],
+    db: Annotated[Session, Depends(get_db)],
+) -> User | None:
+    """Resolve a bearer token for optional catalog personalization."""
+    if credentials is None:
+        return None
+    try:
+        payload = decode_access_token(credentials.credentials)
+        user_id, token_id = payload.get("sub"), payload.get("jti")
+    except jwt.InvalidTokenError:
+        return None
+    if not isinstance(user_id, str) or not isinstance(token_id, str):
+        return None
+    if db.get(RevokedToken, token_id) is not None:
+        return None
+    return db.get(User, user_id)
+
+
+OptionalCurrentUser = Annotated[User | None, Depends(get_optional_current_user)]

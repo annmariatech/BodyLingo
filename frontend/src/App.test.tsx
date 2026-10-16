@@ -3,7 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 
-const user = { id: "user-1", username: "ann", email: "ann@example.com", created_at: "2026-10-17T00:00:00Z" };
+const preferences = { topics: [], situations: [], explanation_style: "balanced", communication_preferences: [], cultural_contexts: [], skipped: true };
+const user = { id: "user-1", username: "ann", email: "ann@example.com", created_at: "2026-10-17T00:00:00Z", preferences, is_premium: false };
 
 afterEach(() => {
   cleanup();
@@ -26,7 +27,9 @@ describe("BodyLingo foundation", () => {
       if (url.endsWith("/api/auth/login")) {
         return new Response(JSON.stringify({ access_token: "token", token_type: "bearer", expires_in: 1800, user }), { status: 200 });
       }
-      if (url.endsWith("/api/lessons")) return new Response("[]", { status: 200 });
+      if (url.endsWith("/api/learning/recommendations")) return new Response("[]", { status: 200 });
+      if (url.endsWith("/api/learning/progress")) return new Response(JSON.stringify({ completed_lessons: [], attempts: 0, correct_answers: 0, due_reviews: 0, is_premium: false }), { status: 200 });
+      if (url.endsWith("/api/learning/reviews")) return new Response("[]", { status: 200 });
       if (url.endsWith("/api/auth/me")) return new Response(JSON.stringify(user), { status: 200 });
       return new Response(null, { status: 204 });
     });
@@ -50,5 +53,29 @@ describe("BodyLingo foundation", () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify(user), { status: 200 }));
     render(<App />);
     await waitFor(() => expect(screen.getByRole("button", { name: "Open profile" })).toBeInTheDocument());
+  });
+
+  it("saves optional onboarding preferences and continues into learning", async () => {
+    const registered = { ...user, preferences: undefined };
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+      const url = String(input);
+      if (url.endsWith("/api/auth/register")) return new Response(JSON.stringify({ access_token: "new-token", token_type: "bearer", expires_in: 1800, user: registered }), { status: 201 });
+      if (url.endsWith("/api/learning/preferences")) return new Response(String(init?.body), { status: 200 });
+      if (url.endsWith("/api/learning/recommendations")) return new Response("[]", { status: 200 });
+      if (url.endsWith("/api/learning/progress")) return new Response(JSON.stringify({ completed_lessons: [], attempts: 0, correct_answers: 0, due_reviews: 0, is_premium: false }), { status: 200 });
+      if (url.endsWith("/api/learning/reviews")) return new Response("[]", { status: 200 });
+      return new Response(null, { status: 204 });
+    });
+    const actor = userEvent.setup();
+    render(<App />);
+    await actor.click(screen.getByRole("button", { name: "Create an account" }));
+    await actor.type(screen.getByLabelText("Username"), "ann");
+    await actor.type(screen.getByLabelText("Email"), "ann@example.com");
+    await actor.type(screen.getByLabelText("Password"), "safe-learning-password");
+    await actor.click(screen.getByRole("button", { name: /create account/i }));
+    expect(await screen.findByRole("heading", { name: "What would you like to explore?" })).toBeInTheDocument();
+    await actor.click(screen.getByRole("checkbox", { name: "Eye contact" }));
+    await actor.click(screen.getByRole("button", { name: /save and continue/i }));
+    expect(await screen.findByRole("heading", { name: /grow your understanding/i })).toBeInTheDocument();
   });
 });
