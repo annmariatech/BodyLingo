@@ -84,6 +84,8 @@ def list_scenarios(db: Session) -> ScenarioListResponse:
                 id=scenario.id,
                 title=scenario.title,
                 description=scenario.description,
+                learning_objectives=scenario.learning_objectives,
+                media_placeholder=scenario.media_placeholder,
             )
             for scenario in scenarios
         ]
@@ -135,6 +137,10 @@ def get_scenario_detail(
         current_step=step.current_step,
         prompt=step.prompt,
         choices=step.choices,
+        title=scenario.title,
+        description=scenario.description,
+        learning_objectives=scenario.learning_objectives,
+        media_placeholder=scenario.media_placeholder,
     )
 
 

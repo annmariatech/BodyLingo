@@ -11,7 +11,7 @@ import {
   Sparkles,
   UsersRound,
 } from "lucide-react";
-import { apiRequest, clearAuth, saveAuth, type AuthResult, type AuthUser, type LessonSummary, type LessonDetail, type LearningQuestion, type LearningProgress, type LearningReview, type Preferences } from "./api";
+import { apiRequest, clearAuth, saveAuth, type AuthResult, type AuthUser, type LessonSummary, type LessonDetail, type LearningQuestion, type LearningProgress, type LearningReview, type Preferences, type ScenarioDetail, type ScenarioProgress, type ScenarioResponse, type ScenarioStep, type ScenarioSummary } from "./api";
 
 type Screen = "Learning" | "Scenario" | "Chatbot" | "Forum" | "Profile";
 const screens: { name: Screen; icon: typeof BookOpen }[] = [
@@ -208,9 +208,94 @@ function LearningScreen({ onProgress }: { onProgress: (progress: LearningProgres
   </>;
 }
 
-function ComingSoon({ screen }: { screen: Exclude<Screen, "Learning" | "Profile"> }) {
+function ScenarioScreen() {
+  const [scenarios, setScenarios] = useState<ScenarioSummary[]>([]);
+  const [completed, setCompleted] = useState<string[]>([]);
+  const [active, setActive] = useState<ScenarioDetail | null>(null);
+  const [step, setStep] = useState<ScenarioStep | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [isComplete, setIsComplete] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  async function refresh() {
+    try {
+      const [catalog, history] = await Promise.all([
+        apiRequest<{ scenarios: ScenarioSummary[] }>("/api/scenarios"),
+        apiRequest<ScenarioProgress>("/api/scenarios/progress"),
+      ]);
+      setScenarios(catalog.scenarios);
+      setCompleted(history.completed_scenarios);
+      setError("");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Scenarios are unavailable.");
+    }
+  }
+
+  useEffect(() => { void refresh(); }, []);
+
+  async function startScenario(scenario: ScenarioSummary) {
+    setBusy(true);
+    try {
+      const detail = await apiRequest<ScenarioDetail>(`/api/scenarios/${scenario.id}`);
+      setActive(detail);
+      setStep(detail);
+      setFeedback(null);
+      setIsComplete(false);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "This scenario could not be opened.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function choose(choiceId: string) {
+    if (!active || !step) return;
+    setBusy(true);
+    setError("");
+    try {
+      const result = await apiRequest<ScenarioResponse>(`/api/scenarios/${active.scenario_id}/respond`, {
+        method: "POST",
+        body: JSON.stringify({ current_step: step.current_step, choice_id: choiceId }),
+      });
+      setFeedback(result.feedback ?? "Your choice has been recorded.");
+      setIsComplete(result.completed);
+      setStep(result.completed ? null : {
+        scenario_id: result.scenario_id,
+        current_step: result.current_step ?? "",
+        prompt: result.prompt ?? "",
+        choices: result.choices,
+      });
+      if (result.completed) await refresh();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Your choice could not be saved.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (active) return <section className="scenario-view">
+    <button className="text-button scenario-back" onClick={() => { setActive(null); setStep(null); setFeedback(null); void refresh(); }}>← Scenario library</button>
+    <p className="eyebrow">PRACTICE WITH POSSIBILITY</p>
+    <h1>{active.title}</h1>
+    {active.description && <p className="scenario-description">{active.description}</p>}
+    <div className="scenario-objectives"><strong>What you’ll practise</strong><ul>{active.learning_objectives.map((objective) => <li key={objective}>{objective}</li>)}</ul></div>
+    <p className="scenario-media-note"><Compass size={15} /> {active.media_placeholder}</p>
+    {step && <article className="scenario-step"><span className="quiz-progress">A MOMENT TO CONSIDER</span><h2>{step.prompt}</h2><div className="scenario-choices">{step.choices.map((choice) => <button key={choice.id} className="scenario-choice" disabled={busy || Boolean(feedback)} onClick={() => void choose(choice.id)}>{choice.text}<ChevronRight size={16} /></button>)}</div></article>}
+    {feedback && <article className={`scenario-feedback ${isComplete ? "finished" : ""}`} role="status"><span className="scenario-feedback-mascot" aria-hidden="true">🐧</span><div><strong>{isComplete ? "Scenario complete" : "A possible outcome"}</strong><p>{feedback}</p>{isComplete ? <button className="button button-primary" onClick={() => { setActive(null); setStep(null); setFeedback(null); }}>Back to scenarios</button> : <button className="button button-primary" onClick={() => setFeedback(null)}>Continue<ChevronRight size={16} /></button>}</div></article>}
+    {error && <p className="inline-error" role="alert">{error}</p>}
+  </section>;
+
+  return <section className="scenario-library"><div className="scenario-hero"><p className="eyebrow">PRACTICE WITH POSSIBILITY</p><h1>Try a moment from everyday life.</h1><p>Explore different responses and their possible effects. There is room for context, individual preferences, and respectful clarification.</p><span aria-hidden="true">🐧</span></div>
+    {error && <p className="inline-error" role="alert">{error}</p>}
+    <div className="section-heading"><div><p className="eyebrow">BRANCHING PRACTICE</p><h2>Choose a scenario</h2></div><span className="recommendation-label">Progress is saved to your account</span></div>
+    <div className="scenario-grid">{scenarios.map((scenario, index) => <article className={`scenario-card scenario-tone-${index % 4}`} key={scenario.id}><div className="scenario-card-icon"><Compass size={20} /></div><p className="scenario-topic">EVERYDAY PRACTICE</p><h2>{scenario.title}</h2><p>{scenario.description}</p><ul>{scenario.learning_objectives.slice(0, 2).map((objective) => <li key={objective}>{objective}</li>)}</ul><span className="scenario-asset-note">{scenario.media_placeholder}</span><button className="button button-primary" disabled={busy} onClick={() => void startScenario(scenario)}>{completed.includes(scenario.id) ? "Practise again" : "Start scenario"}<ChevronRight size={16} /></button></article>)}</div>
+    {!scenarios.length && !error && <div className="loading-card"><span className="loading-dot" /> Loading scenarios…</div>}
+  </section>;
+}
+
+function ComingSoon({ screen }: { screen: "Chatbot" | "Forum" }) {
   const messages = {
-    Scenario: { icon: Compass, eyebrow: "PRACTICE WITH POSSIBILITY", title: "Try a moment from everyday life", copy: "Interactive scenarios are part of the next learning phase. You’ll be able to explore choices and their possible effects." },
     Chatbot: { icon: MessageCircle, eyebrow: "A CURIOUS CONVERSATION", title: "Questions are welcome here", copy: "Your learning companion is coming soon. For now, explore the lesson cards and keep your questions close." },
     Forum: { icon: UsersRound, eyebrow: "LEARN IN COMMUNITY", title: "Many perspectives make room", copy: "A read-only community space with thoughtfully chosen topics is on its way." },
   }[screen];
@@ -287,7 +372,7 @@ function AppShell({ user, onUserUpdate, onLogout, onboardingPending }: { user: A
 
   return <div className="app-shell">
     <aside className="sidebar"><a className="brand" href="#home"><span className="brand-mark">b.</span> bodylingo</a><div className="sidebar-label">YOUR SPACE</div><nav aria-label="Main navigation" className="side-nav">{screens.map(({ name, icon: Icon }) => <button key={name} className={`nav-link ${screen === name ? "active" : ""}`} aria-current={screen === name ? "page" : undefined} onClick={() => setScreen(name)}><Icon size={19} strokeWidth={1.8} /><span>{name}</span>{name === "Learning" && <span className="nav-dot" />}</button>)}</nav><div className="sidebar-bottom"><div className="sidebar-mascot">🐧<div><strong>You’ve got this!</strong><span>Curiosity looks good on you.</span></div></div><button className="user-mini" onClick={() => setScreen("Profile")}><span className="mini-avatar">{user.username.slice(0, 1).toUpperCase()}</span><span><strong>{user.username}</strong><small>My profile</small></span><ChevronRight size={16} /></button></div></aside>
-    <main className="main-column"><header className="topbar"><div className="mobile-brand"><span className="brand-mark">b.</span> bodylingo</div><span className="topbar-greeting">A little more understanding, every day <span>✦</span></span><button className="top-avatar" aria-label="Open profile" onClick={() => setScreen("Profile")}>{user.username.slice(0, 1).toUpperCase()}</button></header><div className="content-area" key={`${screen}-${showOnboarding}`}>{showOnboarding ? <OnboardingScreen initial={user.preferences} onSaved={savePreferences} /> : screen === "Learning" ? <LearningScreen onProgress={setProgress} /> : screen === "Profile" ? <ProfileScreen user={user} onLogout={onLogout} progress={progress} onEdit={() => { setReturnToProfile(true); setShowOnboarding(true); }} /> : <ComingSoon screen={screen} />}</div></main>
+    <main className="main-column"><header className="topbar"><div className="mobile-brand"><span className="brand-mark">b.</span> bodylingo</div><span className="topbar-greeting">A little more understanding, every day <span>✦</span></span><button className="top-avatar" aria-label="Open profile" onClick={() => setScreen("Profile")}>{user.username.slice(0, 1).toUpperCase()}</button></header><div className="content-area" key={`${screen}-${showOnboarding}`}>{showOnboarding ? <OnboardingScreen initial={user.preferences} onSaved={savePreferences} /> : screen === "Learning" ? <LearningScreen onProgress={setProgress} /> : screen === "Scenario" ? <ScenarioScreen /> : screen === "Profile" ? <ProfileScreen user={user} onLogout={onLogout} progress={progress} onEdit={() => { setReturnToProfile(true); setShowOnboarding(true); }} /> : <ComingSoon screen={screen} />}</div></main>
     <nav aria-label="Mobile navigation" className="bottom-nav">{screens.map(({ name, icon: Icon }) => <button key={name} className={screen === name ? "selected" : ""} aria-current={screen === name ? "page" : undefined} onClick={() => setScreen(name)}><Icon size={20} /><span>{name}</span></button>)}</nav>
   </div>;
 }

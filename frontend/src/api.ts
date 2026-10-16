@@ -70,6 +70,42 @@ export type LearningReview = {
   is_due: boolean;
 };
 
+export type ScenarioSummary = {
+  id: string;
+  title: string;
+  description?: string | null;
+  learning_objectives: string[];
+  media_placeholder: string;
+};
+
+export type ScenarioStep = {
+  scenario_id: string;
+  current_step: string;
+  prompt: string;
+  choices: { id: string; text: string }[];
+};
+
+export type ScenarioDetail = ScenarioStep & {
+  title: string;
+  description?: string | null;
+  learning_objectives: string[];
+  media_placeholder: string;
+};
+
+export type ScenarioResponse = {
+  scenario_id: string;
+  feedback?: string | null;
+  current_step?: string | null;
+  prompt?: string | null;
+  choices: { id: string; text: string }[];
+  completed: boolean;
+};
+
+export type ScenarioProgress = {
+  completed_scenarios: string[];
+  sessions: { scenario_id: string; title: string; is_completed: boolean; started_at: string; completed_at?: string | null; response_count: number }[];
+};
+
 const baseUrl = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000").replace(/\/$/, "");
 
 export class ApiError extends Error {

@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from routers.auth import router as auth_router
 from routers.lessons import router as lessons_router
 from routers.learning import router as learning_router
+from routers.scenarios import router as scenarios_router
 import models.learning  # noqa: F401; register learning tables for test and CLI metadata
 
 
@@ -46,6 +47,7 @@ app.add_middleware(
 app.include_router(auth_router, prefix="/api")
 app.include_router(lessons_router, prefix="/api")
 app.include_router(learning_router, prefix="/api")
+app.include_router(scenarios_router, prefix="/api")
 
 
 @app.get("/health", tags=["health"])

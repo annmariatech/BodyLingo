@@ -23,6 +23,10 @@ class Scenario(Base):
         Text,
         nullable=True,
     )
+    learning_objectives: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    media_placeholder: Mapped[str] = mapped_column(
+        String(200), nullable=False, default="Text-based practice; no media asset is included."
+    )
     start_node_id: Mapped[str] = mapped_column(
         String(100),
         nullable=False,

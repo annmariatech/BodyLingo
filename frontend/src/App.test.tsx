@@ -30,6 +30,10 @@ describe("BodyLingo foundation", () => {
       if (url.endsWith("/api/learning/recommendations")) return new Response("[]", { status: 200 });
       if (url.endsWith("/api/learning/progress")) return new Response(JSON.stringify({ completed_lessons: [], attempts: 0, correct_answers: 0, due_reviews: 0, is_premium: false }), { status: 200 });
       if (url.endsWith("/api/learning/reviews")) return new Response("[]", { status: 200 });
+      if (url.endsWith("/api/scenarios/progress")) return new Response(JSON.stringify({ completed_scenarios: [], sessions: [] }), { status: 200 });
+      if (url.endsWith("/api/scenarios")) return new Response(JSON.stringify({ scenarios: [{ id: "quiet-teammate-meeting", title: "A teammate becomes quiet", description: "A meeting scenario.", learning_objectives: ["Check in with care"], media_placeholder: "Text-only sample scenario." }] }), { status: 200 });
+      if (url.endsWith("/api/scenarios/quiet-teammate-meeting/respond")) return new Response(JSON.stringify({ scenario_id: "quiet-teammate-meeting", feedback: "A private question leaves room for many explanations.", current_step: "check-in", prompt: "They need more time. What next?", choices: [{ id: "send-notes", text: "Offer written notes." }], completed: false }), { status: 200 });
+      if (url.endsWith("/api/scenarios/quiet-teammate-meeting")) return new Response(JSON.stringify({ scenario_id: "quiet-teammate-meeting", title: "A teammate becomes quiet", description: "A meeting scenario.", learning_objectives: ["Check in with care"], media_placeholder: "Text-only sample scenario.", current_step: "notice", prompt: "A teammate becomes quiet during the meeting. What do you do?", choices: [{ id: "private-check-in", text: "Check in privately." }] }), { status: 200 });
       if (url.endsWith("/api/auth/me")) return new Response(JSON.stringify(user), { status: 200 });
       return new Response(null, { status: 204 });
     });
@@ -44,7 +48,13 @@ describe("BodyLingo foundation", () => {
       "Learning", "Scenario", "Chatbot", "Forum", "Profile",
     ]);
     await actor.click(within(nav).getByRole("button", { name: /Scenario/ }));
-    expect(screen.getByRole("heading", { name: /try a moment from everyday life/i })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /try a moment from everyday life/i })).toBeInTheDocument();
+    await actor.click(await screen.findByRole("button", { name: /start scenario/i }));
+    expect(await screen.findByText("A teammate becomes quiet during the meeting. What do you do?")).toBeInTheDocument();
+    await actor.click(screen.getByRole("button", { name: "Check in privately." }));
+    expect(await screen.findByText("A private question leaves room for many explanations.")).toBeInTheDocument();
+    await actor.click(screen.getByRole("button", { name: /continue/i }));
+    expect(await screen.findByText("They need more time. What next?")).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalled();
   });
 
