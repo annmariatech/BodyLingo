@@ -67,7 +67,7 @@ describe("BodyLingo foundation", () => {
     await actor.click(screen.getByRole("button", { name: /A teammate becomes quiet/ }));
     expect(await screen.findByText("A teammate becomes quiet during the meeting. What do you do?")).toBeInTheDocument();
     await actor.click(within(nav).getByRole("button", { name: /Forum/ }));
-    expect(await screen.findByRole("heading", { name: "Many perspectives make room." })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Learn from each other." })).toBeInTheDocument();
     expect(await screen.findByRole("heading", { name: "A quiet moment can mean lots of things" })).toBeInTheDocument();
     expect(screen.getByText(/fictional sample posts/i)).toBeInTheDocument();
     await actor.type(screen.getByRole("searchbox", { name: "Search forum posts" }), "quiet");

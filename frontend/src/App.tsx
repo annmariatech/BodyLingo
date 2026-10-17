@@ -5,11 +5,15 @@ import {
   Compass,
   Heart,
   LogOut,
+  Menu,
   MessageCircle,
+  Mic,
+  Moon,
   Search,
   ShieldCheck,
-  Sparkles,
+  Sun,
   UsersRound,
+  X,
 } from "lucide-react";
 import { apiRequest, clearAuth, saveAuth, type AuthResult, type AuthUser, type LessonSummary, type LessonDetail, type LearningQuestion, type LearningProgress, type LearningReview, type Preferences, type ScenarioDetail, type ScenarioProgress, type ScenarioResponse, type ScenarioStep, type ScenarioSummary, type ChatConversation, type ChatMessage, type ChatReference, type ForumFeed, type ForumPost } from "./api";
 
@@ -22,7 +26,11 @@ const screens: { name: Screen; icon: typeof BookOpen }[] = [
   { name: "Profile", icon: Heart },
 ];
 
-function AuthScreen({ onAuthenticated }: { onAuthenticated: (user: AuthUser) => void }) {
+function PipImage({ className = "", alt = "Pip the penguin" }: { className?: string; alt?: string }) {
+  return <img className={`pip-image ${className}`} src="/pip-learning.png" alt={alt} />;
+}
+
+function AuthScreen({ onAuthenticated, theme, onToggleTheme }: { onAuthenticated: (user: AuthUser) => void; theme: "light" | "dark"; onToggleTheme: () => void }) {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -51,13 +59,13 @@ function AuthScreen({ onAuthenticated }: { onAuthenticated: (user: AuthUser) => 
   return (
     <main className="auth-layout">
       <section className="auth-story">
-        <a className="brand" href="#home" aria-label="BodyLingo home"><span className="brand-mark">b.</span> bodylingo</a>
+        <a className="brand" href="#home" aria-label="BodyLingo home"><span className="brand-mark">b.</span> BodyLingo</a>
+        <button className="icon-button auth-theme-toggle" aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`} onClick={onToggleTheme}>{theme === "light" ? <Moon size={19} /> : <Sun size={19} />}</button>
         <div className="auth-message">
-          <div className="mascot-bubble" aria-hidden="true">🐧</div>
-          <p className="eyebrow">COMMUNICATION, WITH CARE</p>
-          <h1>There’s more than one way to connect.</h1>
-          <p className="story-copy">Explore social cues with curiosity, context, and room for everyone to be themselves.</p>
-          <div className="story-note"><Heart size={17} /> No assumptions. Just understanding.</div>
+          <PipImage className="mascot-bubble" />
+          <p className="eyebrow">BODYLINGO</p>
+          <h1>Make room for context.</h1>
+          <p className="story-copy">Learn to notice cues, ask with care, and leave space for what you don’t know yet.</p>
         </div>
         <span className="auth-decoration auth-decoration-one" />
         <span className="auth-decoration auth-decoration-two" />
@@ -171,6 +179,7 @@ function LearningScreen({ onProgress, initialLessonId }: { onProgress: (progress
     const question = questions[questionIndex];
     return <section className="lesson-view">
       <button className="text-button lesson-back" onClick={() => setActiveLesson(null)}>← Back to lessons</button>
+      <PipImage className="lesson-pip pip-motion" alt="Pip reading along" />
       <p className="eyebrow">{activeLesson.topic} · {activeLesson.estimated_duration_minutes} MIN</p>
       <h1>{activeLesson.title}</h1>
       <p className="lesson-introduction">{activeLesson.introduction}</p>
@@ -189,13 +198,12 @@ function LearningScreen({ onProgress, initialLessonId }: { onProgress: (progress
 
   return <>
     <div className="welcome-banner">
-      <div><p className="eyebrow">YOUR LEARNING PATH</p><h1>Grow your understanding, one moment at a time.</h1><p>Small lessons. More generous interpretations.</p></div>
-      <div className="banner-penguin" aria-hidden="true">🐧<span>Hi, I’m Pip!</span></div>
-      <div className="banner-doodle doodle-one">✳</div><div className="banner-doodle doodle-two">✦</div>
+      <div><p className="eyebrow">LEARNING</p><h1>Notice the cue. Make room for context.</h1><p>Short lessons for everyday conversations.</p></div>
+      <PipImage className="banner-penguin pip-motion" alt="Pip reading a coral journal" />
     </div>
     {progress && <div className="learning-progress"><span><strong>{progress.completed_lessons.length}</strong> lessons completed</span><span><strong>{progress.correct_answers}</strong> correct answers</span><span><strong>{progress.due_reviews}</strong> reviews due</span></div>}
     {reviews.length > 0 && <section className="review-panel"><div><p className="eyebrow">SPACED PRACTICE</p><h2>Questions to revisit</h2><p>Incorrect answers return here on a gentle schedule. Answering a review correctly spaces the next revisit further out.</p></div><div className="review-list">{reviews.map((review) => <button key={`${review.lesson_id}-${review.question.id}`} onClick={() => void openLesson(review.lesson_id, review.question.id)} disabled={!review.is_due} className="review-item"><span>{review.is_due ? "Ready to review" : `Due ${new Date(review.due_at).toLocaleDateString()}`}</span><strong>{review.lesson_title}</strong><small>{review.question.prompt}</small></button>)}</div></section>}
-    <div className="section-heading"><div><p className="eyebrow">CHOSEN FOR YOU</p><h2>Lessons for real life</h2></div><span className="recommendation-label"><Sparkles size={15} /> Personalised path</span></div>
+    <div className="section-heading"><div><p className="eyebrow">LESSONS</p><h2>Choose a topic</h2></div></div>
     {error && <p className="inline-error" role="alert">{error}</p>}
     {recommendationError && <p className="inline-error" role="alert">{recommendationError}</p>}
     <div className="lesson-grid">
@@ -206,7 +214,6 @@ function LearningScreen({ onProgress, initialLessonId }: { onProgress: (progress
       </article>)}
     </div>
     {!lessons.length && !error && <div className="loading-card"><span className="loading-dot" /> Finding your first lessons…</div>}
-    <div className="gentle-reminder"><Sparkles size={18} /><p><strong>A gentle reminder:</strong> cues can have many meanings. Curiosity is a better starting point than certainty.</p></div>
   </>;
 }
 
@@ -291,11 +298,11 @@ function ScenarioScreen({ initialScenarioId }: { initialScenarioId?: string }) {
     <div className="scenario-objectives"><strong>What you’ll practise</strong><ul>{active.learning_objectives.map((objective) => <li key={objective}>{objective}</li>)}</ul></div>
     <p className="scenario-media-note"><Compass size={15} /> {active.media_placeholder}</p>
     {step && <article className="scenario-step"><span className="quiz-progress">A MOMENT TO CONSIDER</span><h2>{step.prompt}</h2><div className="scenario-choices">{step.choices.map((choice) => <button key={choice.id} className="scenario-choice" disabled={busy || Boolean(feedback)} onClick={() => void choose(choice.id)}>{choice.text}<ChevronRight size={16} /></button>)}</div></article>}
-    {feedback && <article className={`scenario-feedback ${isComplete ? "finished" : ""}`} role="status"><span className="scenario-feedback-mascot" aria-hidden="true">🐧</span><div><strong>{isComplete ? "Scenario complete" : "A possible outcome"}</strong><p>{feedback}</p>{isComplete ? <button className="button button-primary" onClick={() => { setActive(null); setStep(null); setFeedback(null); }}>Back to scenarios</button> : <button className="button button-primary" onClick={() => setFeedback(null)}>Continue<ChevronRight size={16} /></button>}</div></article>}
+    {feedback && <article className={`scenario-feedback ${isComplete ? "finished" : ""}`} role="status"><PipImage className="scenario-feedback-mascot pip-motion" alt="Pip considering the outcome" /><div><strong>{isComplete ? "Scenario complete" : "A possible outcome"}</strong><p>{feedback}</p>{isComplete ? <button className="button button-primary" onClick={() => { setActive(null); setStep(null); setFeedback(null); }}>Back to scenarios</button> : <button className="button button-primary" onClick={() => setFeedback(null)}>Continue<ChevronRight size={16} /></button>}</div></article>}
     {error && <p className="inline-error" role="alert">{error}</p>}
   </section>;
 
-  return <section className="scenario-library"><div className="scenario-hero"><p className="eyebrow">PRACTICE WITH POSSIBILITY</p><h1>Try a moment from everyday life.</h1><p>Explore different responses and their possible effects. There is room for context, individual preferences, and respectful clarification.</p><span aria-hidden="true">🐧</span></div>
+  return <section className="scenario-library"><div className="scenario-hero"><p className="eyebrow">SCENARIOS</p><h1>Practice a conversation.</h1><p>Try a response. See where it might lead.</p><PipImage className="scenario-hero-pip pip-motion" alt="Pip exploring a conversation" /></div>
     {error && <p className="inline-error" role="alert">{error}</p>}
     <div className="section-heading"><div><p className="eyebrow">BRANCHING PRACTICE</p><h2>Choose a scenario</h2></div><span className="recommendation-label">Progress is saved to your account</span></div>
     <div className="scenario-grid">{scenarios.map((scenario, index) => <article className={`scenario-card scenario-tone-${index % 4}`} key={scenario.id}><div className="scenario-card-icon"><Compass size={20} /></div><p className="scenario-topic">EVERYDAY PRACTICE</p><h2>{scenario.title}</h2><p>{scenario.description}</p><ul>{scenario.learning_objectives.slice(0, 2).map((objective) => <li key={objective}>{objective}</li>)}</ul><span className="scenario-asset-note">{scenario.media_placeholder}</span><button className="button button-primary" disabled={busy} onClick={() => void startScenario(scenario)}>{completed.includes(scenario.id) ? "Practise again" : "Start scenario"}<ChevronRight size={16} /></button></article>)}</div>
@@ -359,10 +366,10 @@ function ChatScreen({ onOpenReference }: { onOpenReference: (reference: ChatRefe
     recognition.onresult = (event) => setDraft((text) => `${text}${text ? " " : ""}${event.results[0][0].transcript}`);
     recognition.onerror = () => setError("Voice input was unavailable. You can type your message instead."); recognition.start();
   }
-  return <section className="chat-layout"><header className="chat-heading"><div><p className="eyebrow">A CURIOUS CONVERSATION</p><h1>Ask Pip</h1><p>Explore communication with context and care. Cues are possibilities, not proof of what someone means.</p></div><button className="button button-primary" onClick={() => void newConversation()} disabled={busy}>New conversation</button></header>
+  return <section className="chat-layout"><header className="chat-heading"><div><p className="eyebrow">CHAT</p><h1>Ask Pip</h1><p>Ask about a moment. Explore it together.</p></div><button className="button button-primary" onClick={() => void newConversation()} disabled={busy}>New conversation</button></header>
     <div className="chat-workspace"><aside className="chat-history"><h2>Your conversations</h2>{conversations.map((item) => <button key={item.id} className={activeId === item.id ? "selected" : ""} onClick={() => void loadConversation(item.id)}>{item.title}</button>)}{!conversations.length && <p>New chats will appear here.</p>}</aside>
-      <div className="chat-panel"><div className="chat-messages" aria-live="polite">{messages.length === 0 ? <div className="chat-welcome"><span aria-hidden="true">🐧</span><h2>What would you like to explore?</h2><p>Ask about a lesson topic, a social situation, or ways to check in respectfully.</p><div className="chat-suggestions">{["How can I ask for clarification?", "What are some ways to notice tone of voice?", "How can I check in with a quiet teammate?"] .map((question) => <button key={question} onClick={() => setDraft(question)}>{question}</button>)}</div></div> : messages.map((message) => <article className={`chat-message ${message.role}`} key={message.id}><p>{message.content}</p>{message.references.length > 0 && <div className="chat-references"><span>Explore in BodyLingo</span>{message.references.map((reference) => <button key={`${reference.type}-${reference.id}`} onClick={() => onOpenReference(reference)}>{reference.type === "lesson" ? <BookOpen size={15} /> : <Compass size={15} />}{reference.title}<ChevronRight size={14} /></button>)}</div>}</article>)}</div>
-        {error && <p className="inline-error" role="alert">{error}</p>}<form className="chat-compose" onSubmit={(event) => void send(event)}><textarea aria-label="Message Pip" maxLength={2000} placeholder="Write a question or situation to explore…" value={draft} onChange={(event) => setDraft(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); event.currentTarget.form?.requestSubmit(); } }} />{voiceAvailable && <button type="button" className="button button-quiet" onClick={dictate} aria-label="Use voice input">🎙</button>}<button className="button button-primary" disabled={busy || !draft.trim()}>{busy ? "Thinking…" : "Send"}<ChevronRight size={16} /></button></form><small className="chat-privacy">Your conversations are private to your account. Avoid sharing sensitive personal information.</small></div></div></section>;
+      <div className="chat-panel"><div className="chat-messages" aria-live="polite">{messages.length === 0 ? <div className="chat-welcome"><PipImage className="chat-pip" alt="Pip, your conversation companion" /><h2>Ask Pip</h2><p>What’s on your mind?</p><div className="chat-suggestions">{["Ask for clarification", "Check in with a quiet teammate"] .map((question) => <button key={question} onClick={() => setDraft(question)}>{question}</button>)}</div></div> : messages.map((message) => <article className={`chat-message ${message.role}`} key={message.id}>{message.role === "assistant" && <PipImage className="chat-message-pip" alt="Pip" />}<p>{message.content}</p>{message.references.length > 0 && <div className="chat-references"><span>Related practice</span>{message.references.map((reference) => <button key={`${reference.type}-${reference.id}`} onClick={() => onOpenReference(reference)}>{reference.type === "lesson" ? <BookOpen size={15} /> : <Compass size={15} />}{reference.title}<ChevronRight size={14} /></button>)}</div>}</article>)}</div>
+        {error && <p className="inline-error" role="alert">{error}</p>}<form className="chat-compose" onSubmit={(event) => void send(event)}><textarea aria-label="Message Pip" maxLength={2000} placeholder="Write a message…" value={draft} onChange={(event) => setDraft(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); event.currentTarget.form?.requestSubmit(); } }} />{voiceAvailable && <button type="button" className="button button-quiet voice-button" onClick={dictate} aria-label="Use voice input"><Mic size={20} /></button>}<button className="button button-primary" disabled={busy || !draft.trim()}>{busy ? "Thinking…" : "Send"}<ChevronRight size={16} /></button></form><small className="chat-privacy">Avoid sharing sensitive personal information.</small></div></div></section>;
 }
 
 function ForumScreen() {
@@ -389,7 +396,7 @@ function ForumScreen() {
     return () => { current = false; window.clearTimeout(timer); };
   }, [query, category]);
 
-  return <section className="forum-layout"><header className="forum-hero"><div><p className="eyebrow">LEARN IN COMMUNITY</p><h1>Many perspectives make room.</h1><p>Browse gentle prompts and reflections about communication, context, and access.</p></div><div className="forum-illustration" aria-hidden="true">🐧<span>✦</span></div></header>
+  return <section className="forum-layout"><header className="forum-hero"><div><p className="eyebrow">COMMUNITY</p><h1>Learn from each other.</h1><p>Short reflections on everyday communication.</p></div><PipImage className="forum-illustration" alt="Pip" /></header>
     <div className="forum-sample-note"><ShieldCheck size={16} /><span>These are fictional sample posts for the demo. This forum is read-only.</span></div>
     <div className="forum-controls"><label className="forum-search"><Search size={18} /><input aria-label="Search forum posts" type="search" placeholder="Search topics, phrases, or situations…" value={query} onChange={(event) => setQuery(event.target.value)} /></label><div className="forum-filter-label"><span>Browse by topic</span><small>{classification === "groq" ? "AI-assisted tags" : "Topic tags"}</small></div><div className="forum-categories"><button className={!category ? "selected" : ""} onClick={() => setCategory("")}>All topics</button>{categories.map((item) => <button key={item} className={category === item ? "selected" : ""} onClick={() => setCategory(category === item ? "" : item)}>{item}</button>)}</div></div>
     {error && <p className="inline-error" role="alert">{error}</p>}
@@ -432,7 +439,7 @@ function OnboardingScreen({ initial, onSaved }: { initial?: Partial<Preferences>
     }
   }
 
-  return <section className="onboarding-layout"><div className="onboarding-heading"><div className="onboarding-penguin" aria-hidden="true">🐧</div><p className="eyebrow">A PATH THAT FITS YOU</p><h1>What would you like to explore?</h1><p>Choose anything that feels useful. These preferences shape lesson recommendations; you can change them later. No diagnosis or personal explanation is needed.</p></div>
+  return <section className="onboarding-layout"><div className="onboarding-heading"><PipImage className="onboarding-penguin" alt="Pip with a learning journal" /><p className="eyebrow">YOUR PREFERENCES</p><h1>What would you like to explore?</h1><p>Pick topics and situations that feel useful. You can change these choices later.</p></div>
     <div className="onboarding-groups">
       <PreferenceGroup title="Topics" choices={preferenceChoices.topics} selected={topics} onChange={setTopics} />
       <PreferenceGroup title="Situations to practise" choices={preferenceChoices.situations} selected={situations} onChange={setSituations} />
@@ -484,13 +491,13 @@ function ProfileScreen({ user, onLogout, onEdit, onLearning, onScenarios, progre
     <button className="button button-quiet logout-button" onClick={onLogout}><LogOut size={17} /> Sign out</button></section>;
 }
 
-function AppShell({ user, onUserUpdate, onLogout, onboardingPending }: { user: AuthUser; onUserUpdate: (user: AuthUser) => void; onLogout: () => void; onboardingPending: boolean }) {
+function AppShell({ user, onUserUpdate, onLogout, onboardingPending, theme, onToggleTheme }: { user: AuthUser; onUserUpdate: (user: AuthUser) => void; onLogout: () => void; onboardingPending: boolean; theme: "light" | "dark"; onToggleTheme: () => void }) {
   const [screen, setScreen] = useState<Screen>("Learning");
   const [showOnboarding, setShowOnboarding] = useState(onboardingPending);
   const [returnToProfile, setReturnToProfile] = useState(false);
   const [progress, setProgress] = useState<LearningProgress | null>(null);
   const [pendingReference, setPendingReference] = useState<ChatReference | null>(null);
-
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   async function savePreferences(preferences: Preferences) {
     const saved = await apiRequest<Preferences>("/api/learning/preferences", { method: "PUT", body: JSON.stringify(preferences) });
     onUserUpdate({ ...user, preferences: saved });
@@ -499,10 +506,11 @@ function AppShell({ user, onUserUpdate, onLogout, onboardingPending }: { user: A
     setReturnToProfile(false);
   }
 
-  return <div className="app-shell">
+  return <div className={`app-shell ${sidebarOpen ? "sidebar-open" : ""}`}>
     <a className="skip-link" href="#main-content">Skip to main content</a>
-    <aside className="sidebar"><a className="brand" href="#home"><span className="brand-mark">b.</span> bodylingo</a><div className="sidebar-label">YOUR SPACE</div><nav aria-label="Main navigation" className="side-nav">{screens.map(({ name, icon: Icon }) => <button key={name} className={`nav-link ${screen === name ? "active" : ""}`} aria-current={screen === name ? "page" : undefined} onClick={() => setScreen(name)}><Icon size={19} strokeWidth={1.8} /><span>{name}</span>{name === "Learning" && <span className="nav-dot" />}</button>)}</nav><div className="sidebar-bottom"><div className="sidebar-mascot">🐧<div><strong>You’ve got this!</strong><span>Curiosity looks good on you.</span></div></div><button className="user-mini" onClick={() => setScreen("Profile")}><span className="mini-avatar">{user.username.slice(0, 1).toUpperCase()}</span><span><strong>{user.username}</strong><small>My profile</small></span><ChevronRight size={16} /></button></div></aside>
-    <main className="main-column" id="main-content" tabIndex={-1}><header className="topbar"><div className="mobile-brand"><span className="brand-mark">b.</span> bodylingo</div><span className="topbar-greeting">A little more understanding, every day <span>✦</span></span><button className="top-avatar" aria-label="Open profile" onClick={() => setScreen("Profile")}>{user.username.slice(0, 1).toUpperCase()}</button></header><div className="content-area" key={`${screen}-${showOnboarding}`}>{showOnboarding ? <OnboardingScreen initial={user.preferences} onSaved={savePreferences} /> : screen === "Learning" ? <LearningScreen onProgress={setProgress} initialLessonId={pendingReference?.type === "lesson" ? pendingReference.id : undefined} /> : screen === "Scenario" ? <ScenarioScreen initialScenarioId={pendingReference?.type === "scenario" ? pendingReference.id : undefined} /> : screen === "Chatbot" ? <ChatScreen onOpenReference={(reference) => { setPendingReference(reference); setScreen(reference.type === "lesson" ? "Learning" : "Scenario"); }} /> : screen === "Forum" ? <ForumScreen /> : <ProfileScreen user={user} onLogout={onLogout} progress={progress} onEdit={() => { setReturnToProfile(true); setShowOnboarding(true); }} onLearning={() => setScreen("Learning")} onScenarios={() => setScreen("Scenario")} />}</div></main>
+    {sidebarOpen && <button className="sidebar-scrim" aria-label="Close navigation" onClick={() => setSidebarOpen(false)} />}
+    <aside className="sidebar" hidden={!sidebarOpen}><div className="sidebar-top"><a className="brand" href="#home"><span className="brand-mark">b.</span> BodyLingo</a><button className="icon-button sidebar-close" aria-label="Close navigation" onClick={() => setSidebarOpen(false)}><X size={20} /></button></div><div className="sidebar-label">NAVIGATION</div><nav aria-label="Main navigation" className="side-nav">{screens.map(({ name, icon: Icon }) => <button key={name} className={`nav-link ${screen === name ? "active" : ""}`} aria-current={screen === name ? "page" : undefined} onClick={() => { setScreen(name); setSidebarOpen(false); }}><Icon size={19} strokeWidth={1.8} /><span>{name}</span></button>)}</nav><div className="sidebar-bottom"><button className="user-mini" onClick={() => { setScreen("Profile"); setSidebarOpen(false); }}><span className="mini-avatar">{user.username.slice(0, 1).toUpperCase()}</span><span><strong>{user.username}</strong><small>Profile</small></span><ChevronRight size={16} /></button></div></aside>
+    <main className="main-column" id="main-content" tabIndex={-1}><header className="topbar"><button className="icon-button sidebar-toggle" aria-label={sidebarOpen ? "Close navigation" : "Open navigation"} aria-expanded={sidebarOpen} onClick={() => setSidebarOpen((open) => !open)}>{sidebarOpen ? <X size={21} /> : <Menu size={21} />}</button><div className="mobile-brand"><span className="brand-mark">b.</span> BodyLingo</div><div className="topbar-actions"><button className="icon-button theme-toggle" aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`} onClick={onToggleTheme}>{theme === "light" ? <Moon size={19} /> : <Sun size={19} />}</button><button className="top-avatar" aria-label="Open profile" onClick={() => setScreen("Profile")}>{user.username.slice(0, 1).toUpperCase()}</button></div></header><div className="content-area" key={`${screen}-${showOnboarding}`}>{showOnboarding ? <OnboardingScreen initial={user.preferences} onSaved={savePreferences} /> : screen === "Learning" ? <LearningScreen onProgress={setProgress} initialLessonId={pendingReference?.type === "lesson" ? pendingReference.id : undefined} /> : screen === "Scenario" ? <ScenarioScreen initialScenarioId={pendingReference?.type === "scenario" ? pendingReference.id : undefined} /> : screen === "Chatbot" ? <ChatScreen onOpenReference={(reference) => { setPendingReference(reference); setScreen(reference.type === "lesson" ? "Learning" : "Scenario"); }} /> : screen === "Forum" ? <ForumScreen /> : <ProfileScreen user={user} onLogout={onLogout} progress={progress} onEdit={() => { setReturnToProfile(true); setShowOnboarding(true); }} onLearning={() => setScreen("Learning")} onScenarios={() => setScreen("Scenario")} />}</div></main>
     <nav aria-label="Mobile navigation" className="bottom-nav">{screens.map(({ name, icon: Icon }) => <button key={name} className={screen === name ? "selected" : ""} aria-current={screen === name ? "page" : undefined} onClick={() => setScreen(name)}><Icon size={20} /><span>{name}</span></button>)}</nav>
   </div>;
 }
@@ -511,6 +519,12 @@ export default function App() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [checking, setChecking] = useState(true);
   const [onboardingPending, setOnboardingPending] = useState(false);
+  const [theme, setTheme] = useState<"light" | "dark">(() => localStorage.getItem("bodylingo_theme") === "dark" ? "dark" : "light");
+  const toggleTheme = () => setTheme((current) => current === "light" ? "dark" : "light");
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem("bodylingo_theme", theme);
+  }, [theme]);
   useEffect(() => {
     if (!localStorage.getItem("bodylingo_access_token")) {
       setChecking(false);
@@ -532,9 +546,9 @@ export default function App() {
   }
 
   if (checking) return <div className="app-loading"><span className="loading-dot" /> Opening your space…</div>;
-  if (!user) return <AuthScreen onAuthenticated={(authenticated) => {
+  if (!user) return <AuthScreen theme={theme} onToggleTheme={toggleTheme} onAuthenticated={(authenticated) => {
     setUser(authenticated);
     setOnboardingPending(!authenticated.preferences || Object.keys(authenticated.preferences).length === 0);
   }} />;
-  return <AppShell user={user} onUserUpdate={setUser} onboardingPending={onboardingPending} onLogout={logout} />;
+  return <AppShell user={user} onUserUpdate={setUser} onboardingPending={onboardingPending} onLogout={logout} theme={theme} onToggleTheme={toggleTheme} />;
 }

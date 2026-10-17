@@ -219,6 +219,175 @@ a { color: inherit; text-decoration: none; }
 .entitlement-badge { display: inline-flex; align-items: center; padding: 6px 10px; border-radius: 15px; font-size: 10px; font-weight: 750; }.entitlement-badge.free { color: #5d7961; background: #edf4ec; }.entitlement-badge.premium { color: #896838; background: #f7efd9; }
 .locked-list { list-style: none; padding-left: 0; }.locked-list li { display: flex; align-items: center; gap: 6px; }.locked-list svg { color: #9b875a; }
 
+/* BodyLingo visual refresh */
+:root { --page: #f6f8f5; --surface: #fff; --surface-soft: #fbfcfa; --text-soft: #65736b; --line: #e4ebe5; }
+.app-shell { display: block; background: var(--page); }
+.sidebar[hidden] { display: none !important; }
+.sidebar { position: fixed; z-index: 12; inset: 0 auto 0 0; width: min(300px, 86vw); height: 100dvh; padding: 22px 18px 18px; box-shadow: 16px 0 48px #15271c26; animation: drawer-in .18s ease-out; }
+@keyframes drawer-in { from { opacity: .65; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
+.sidebar-top { display: flex; align-items: center; justify-content: space-between; }
+.sidebar-label { margin-top: 36px; }
+.sidebar-scrim { position: fixed; z-index: 11; inset: 0; border: 0; background: #15251e73; }
+.topbar { justify-content: space-between; }
+.topbar-actions { display: flex; align-items: center; gap: 12px; }
+.icon-button { display: grid; width: 42px; height: 42px; place-items: center; border: 1px solid var(--line); border-radius: 12px; color: var(--ink); background: var(--surface); }
+.icon-button:hover { color: var(--green); border-color: #a6c2ac; }
+.sidebar-close { width: 38px; height: 38px; }
+.auth-story { position: relative; }
+.auth-theme-toggle { position: absolute; z-index: 2; top: 32px; right: 30px; color: #fff; border-color: #ffffff50; background: #ffffff12; }
+.mobile-brand { display: inline-flex; }
+.topbar-greeting { display: none; }
+.pip-image { object-fit: contain; }
+.mascot-bubble { width: 112px; height: 112px; padding: 8px; object-fit: contain; transform: none; box-shadow: 0 12px 35px #193b2d3b; }
+.banner-penguin { width: 190px; height: 190px; font-size: initial; filter: drop-shadow(0 7px 2px #183e2e42); }
+.pip-motion { animation: pip-float 3.8s ease-in-out infinite; transform-origin: 50% 75%; }
+@keyframes pip-float { 0%, 100% { translate: 0 0; rotate: 0deg; } 50% { translate: 0 -7px; rotate: 1.2deg; } }
+.lesson-view { position: relative; padding-top: 8px; }
+.lesson-pip { position: absolute; right: 12px; top: 34px; width: 105px; height: 105px; }
+.scenario-hero-pip { position: absolute; right: 5%; bottom: -12px; width: 170px; height: 170px; }
+.scenario-hero { padding-right: 200px; }
+.scenario-feedback-mascot { width: 66px; height: 66px; flex: 0 0 66px; }
+.chat-pip { display: block; width: 116px; height: 116px; margin: 0 auto 12px; }
+.chat-message { position: relative; padding-left: 50px; }
+.chat-message-pip { position: absolute; top: 10px; left: 8px; width: 34px; height: 34px; }
+.chat-heading h1 { color: var(--ink); }
+.chat-history > p, .chat-heading p:not(.eyebrow), .chat-welcome p { color: var(--text-soft); }
+.chat-compose .voice-button { min-width: 46px; padding: 0; color: var(--green); }
+.chat-suggestions button { min-height: 44px; }
+.forum-illustration { width: 126px; height: 126px; object-fit: contain; }
+.onboarding-penguin { width: 100px; height: 100px; object-fit: contain; background: transparent; }
+.welcome-banner h1 { max-width: 620px; }
+.welcome-banner p:last-child { font-size: 14px; }
+.eyebrow { letter-spacing: 1.2px; }
+
+/* Persisted dark mode */
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --ink: #edf3ee;
+  --muted: #adbbb2;
+  --green: #78b48b;
+  --green-dark: #629b74;
+  --mint: #263b30;
+  --cream: #34372d;
+  --line: #35443a;
+  --page: #141a17;
+  --surface: #1d2621;
+  --surface-soft: #19211c;
+  --text-soft: #b4c0b7;
+  background: var(--page);
+  color: var(--ink);
+}
+html[data-theme="dark"] body,
+html[data-theme="dark"] .app-shell,
+html[data-theme="dark"] .content-area,
+html[data-theme="dark"] .auth-panel { background: var(--page); color: var(--ink); }
+html[data-theme="dark"] .topbar,
+html[data-theme="dark"] .sidebar,
+html[data-theme="dark"] .auth-card,
+html[data-theme="dark"] .lesson-card,
+html[data-theme="dark"] .coming-card,
+html[data-theme="dark"] .profile-card,
+html[data-theme="dark"] .lesson-teaching,
+html[data-theme="dark"] .quiz-card,
+html[data-theme="dark"] .preference-group,
+html[data-theme="dark"] .scenario-card,
+html[data-theme="dark"] .scenario-objectives,
+html[data-theme="dark"] .scenario-step,
+html[data-theme="dark"] .chat-workspace,
+html[data-theme="dark"] .chat-references button,
+html[data-theme="dark"] .forum-post,
+html[data-theme="dark"] .forum-search,
+html[data-theme="dark"] .forum-categories button,
+html[data-theme="dark"] .review-item,
+html[data-theme="dark"] .learning-progress span { background: var(--surface); color: var(--ink); border-color: var(--line); }
+html[data-theme="dark"] .chat-history,
+html[data-theme="dark"] .chat-suggestions button,
+html[data-theme="dark"] .quiz-option,
+html[data-theme="dark"] .scenario-choice,
+html[data-theme="dark"] .forum-empty,
+html[data-theme="dark"] .profile-progress,
+html[data-theme="dark"] .history-status.in-progress { background: var(--surface-soft); color: var(--ink); border-color: var(--line); }
+html[data-theme="dark"] :is(h1,h2,h3,h4,strong,label,.nav-link,.chat-message,.scenario-choice,.quiz-option,.forum-post h2,.profile-identity h2,.lesson-card h3,.coming-card h1,.scenario-card h2) { color: var(--ink); }
+html[data-theme="dark"] :is(p,small,li,.muted,.lesson-description,.scenario-description,.scenario-card > p,.forum-excerpt,.forum-post-meta,.chat-privacy,.chat-heading p:not(.eyebrow),.chat-welcome p,.profile-title > p:last-child,.lesson-introduction,.lesson-teaching p,.scenario-media-note) { color: var(--text-soft); }
+html[data-theme="dark"] :is(input,textarea) { color: var(--ink); background: #18211b; border-color: var(--line); }
+html[data-theme="dark"] .welcome-banner { background: #274a37; }
+html[data-theme="dark"] .scenario-hero { background: #263f43; }
+html[data-theme="dark"] .forum-hero { background: linear-gradient(115deg,#263b30,#363729); }
+html[data-theme="dark"] .review-panel,
+html[data-theme="dark"] .preferences-card,
+html[data-theme="dark"] .gentle-reminder { background: #292a22; border-color: #484436; }
+html[data-theme="dark"] .bottom-nav { background: #1d2621; border-color: var(--line); }
+html[data-theme="dark"] .bottom-nav button.selected { color: #b1d4b8; background: #263b30; }
+html[data-theme="dark"] .button-primary { color: #14221a; }
+html[data-theme="dark"] .auth-layout { background: var(--page); }
+html[data-theme="dark"] .auth-panel { background: var(--page); }
+html[data-theme="dark"] .auth-card h2,
+html[data-theme="dark"] .auth-form label,
+html[data-theme="dark"] .auth-switch,
+html[data-theme="dark"] .privacy-note { color: var(--ink); }
+html[data-theme="dark"] .auth-form input { background: #18211b; color: var(--ink); border-color: var(--line); }
+html[data-theme="dark"] .auth-form input::placeholder { color: #829087; }
+html[data-theme="dark"] .auth-switch button { color: #9dc9a7; }
+html[data-theme="dark"] .auth-story { background: #203f2f; }
+html[data-theme="dark"] .auth-theme-toggle { background: #ffffff12; color: #fff; border-color: #ffffff50; }
+
+@media (max-width: 720px) {
+  .app-shell { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+  .topbar { height: 62px; gap: 10px; padding: 0 12px; }
+  .sidebar-toggle, .theme-toggle { width: 40px; height: 40px; }
+  .mobile-brand { margin-right: auto; font-size: 17px; }
+  .topbar-actions { gap: 8px; }
+  .content-area { padding: 20px 16px 36px; }
+  .welcome-banner { min-height: 195px; padding: 24px 18px; }
+  .welcome-banner > div:first-child { max-width: 72%; }
+  .welcome-banner h1 { font-size: 28px; }
+  .welcome-banner p:last-child { font-size: 14px; }
+  .banner-penguin { right: -2%; bottom: 0; width: 130px; height: 145px; }
+  .section-heading h2 { font-size: 24px; }
+  .lesson-card h3 { font-size: 19px; }
+  .lesson-description { font-size: 14px; }
+  .lesson-topic, .lesson-duration, .difficulty, .recommendation-reason { font-size: 12px; }
+  .lesson-pip { top: 26px; right: 0; width: 76px; height: 76px; }
+  .lesson-view > h1 { padding-right: 56px; font-size: 32px; }
+  .lesson-introduction, .lesson-teaching p, .lesson-teaching strong { font-size: 16px; }
+  .lesson-teaching h2, .quiz-card h2, .scenario-step h2 { font-size: 23px; }
+  .quiz-option, .scenario-choice { padding: 14px; font-size: 16px; }
+  .quiz-progress, .eyebrow { font-size: 11px; }
+  .scenario-hero { min-height: 194px; padding: 22px 124px 20px 19px; }
+  .scenario-hero h1 { max-width: 100%; font-size: 28px; }
+  .scenario-hero p:not(.eyebrow) { max-width: 100%; font-size: 15px; }
+  .scenario-hero-pip { right: -4px; bottom: -6px; width: 126px; height: 133px; }
+  .scenario-card { min-height: 0; padding: 17px; }
+  .scenario-card h2 { font-size: 21px; }
+  .scenario-card > p:not(.scenario-topic), .scenario-card ul, .scenario-objectives ul { font-size: 15px; }
+  .scenario-topic, .scenario-asset-note, .scenario-media-note { font-size: 12px; }
+  .scenario-feedback { align-items: center; }
+  .scenario-feedback-mascot { width: 54px; height: 54px; flex-basis: 54px; }
+  .scenario-feedback p { font-size: 15px; }
+  .chat-heading { gap: 12px; margin-bottom: 15px; }
+  .chat-heading h1 { font-size: 32px; }
+  .chat-heading p:not(.eyebrow) { font-size: 16px; }
+  .chat-history > button { font-size: 14px; }
+  .chat-welcome h2 { font-size: 23px; }
+  .chat-welcome p, .chat-message { font-size: 16px; }
+  .chat-suggestions button { padding: 10px 12px; font-size: 14px; }
+  .chat-compose { gap: 7px; padding: 10px; }
+  .chat-compose textarea { min-width: 0; min-height: 48px; padding: 12px; font-size: 16px; }
+  .chat-compose .voice-button { display: inline-flex; width: 46px; min-width: 46px; height: 46px; }
+  .chat-compose .button-primary { min-height: 46px; padding: 0 12px; font-size: 14px; }
+  .chat-privacy { font-size: 12px; }
+  .forum-hero h1 { font-size: 28px; }
+  .forum-hero p:not(.eyebrow) { font-size: 15px; }
+  .forum-post h2 { font-size: 20px; }
+  .forum-excerpt, .forum-categories button { font-size: 15px; }
+  .bottom-nav { height: calc(72px + env(safe-area-inset-bottom)); }
+  .bottom-nav span { font-size: 11px; }
+  .auth-form label, .auth-switch, .privacy-note { font-size: 14px; }
+  .auth-form input { min-height: 52px; font-size: 16px; }
+  html[data-theme="dark"] .onboarding-actions { background: var(--page); }
+  html[data-theme="dark"] .bottom-nav button { color: #bdc8c0; }
+}
+
 /* Branching scenario practice */
 .scenario-library, .scenario-view { max-width: 1040px; margin: 0 auto; }
 .scenario-hero { min-height: 210px; position: relative; overflow: hidden; padding: 31px 36px; border-radius: 15px; color: white; background: #526c72; }
