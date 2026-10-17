@@ -388,6 +388,54 @@ html[data-theme="dark"] .auth-theme-toggle { background: #ffffff12; color: #fff;
   html[data-theme="dark"] .bottom-nav button { color: #bdc8c0; }
 }
 
+/* Keep desktop navigation visible; use an overlay drawer on phones. */
+@media (min-width: 721px) {
+  .app-shell { display: grid; grid-template-columns: 248px minmax(0, 1fr); }
+  .sidebar { position: sticky; inset: auto; z-index: auto; width: auto; height: 100vh; box-shadow: none; animation: none; }
+  .sidebar-close, .sidebar-toggle { display: none; }
+}
+@media (min-width: 721px) and (max-width: 1060px) {
+  .app-shell { grid-template-columns: 215px minmax(0, 1fr); }
+}
+@media (max-width: 720px) {
+  .app-shell { display: block; }
+  .sidebar { display: none; position: fixed; inset: 0 auto 0 0; z-index: 12; width: min(300px, 86vw); height: 100dvh; box-shadow: 16px 0 48px #15271c26; animation: drawer-in .18s ease-out; }
+  .sidebar.open { display: flex; }
+  .sidebar-close, .sidebar-toggle { display: grid; }
+}
+
+.responses-layout { max-width: 1040px; margin: 3px auto; }
+.responses-note { display: flex; align-items: flex-start; gap: 11px; margin: 18px 0; padding: 13px 16px; border: 1px solid var(--line); border-radius: 11px; background: var(--surface-soft); color: var(--text-soft); }
+.responses-note svg { flex: 0 0 auto; color: var(--green); }
+.responses-note p { margin: 0; font-size: 14px; line-height: 1.5; }
+.response-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.response-card { align-self: start; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--ink); overflow: hidden; }
+.response-card summary { position: relative; display: block; padding: 20px; list-style: none; cursor: pointer; }
+.response-card summary::-webkit-details-marker { display: none; }
+.response-method { display: inline-flex; padding: 5px 9px; border-radius: 20px; color: var(--green); background: var(--mint); font-size: 12px; font-weight: 750; }
+.response-card h2 { margin: 12px 0 6px; color: var(--ink); font: 600 21px/1.3 var(--serif); }
+.response-card summary p { margin: 0; color: var(--text-soft); font-size: 14px; line-height: 1.6; }
+.response-open { display: flex; align-items: center; gap: 5px; margin-top: 15px; color: var(--green); font-size: 14px; font-weight: 700; }
+.response-card[open] .response-open svg { transform: rotate(90deg); }
+.response-card ol { display: grid; gap: 11px; margin: 0; padding: 0 24px 20px 44px; color: var(--text-soft); font-size: 15px; line-height: 1.6; }
+.response-card li { padding-left: 3px; }
+.response-source { display: flex; align-items: center; gap: 5px; padding: 12px 20px; border-top: 1px solid var(--line); color: var(--green); font-size: 13px; font-weight: 700; }
+.responses-help { margin: 20px 2px; color: var(--text-soft); font-size: 14px; line-height: 1.6; }
+html[data-theme="dark"] .response-card,
+html[data-theme="dark"] .responses-note { background: var(--surface); border-color: var(--line); color: var(--ink); }
+html[data-theme="dark"] .response-card h2 { color: var(--ink); }
+html[data-theme="dark"] .response-card summary p,
+html[data-theme="dark"] .response-card ol,
+html[data-theme="dark"] .responses-help { color: var(--text-soft); }
+@media (max-width: 720px) {
+  .response-grid { grid-template-columns: 1fr; gap: 11px; }
+  .response-card summary { padding: 17px; }
+  .response-card h2 { font-size: 21px; }
+  .response-card summary p { font-size: 15px; }
+  .response-card ol { padding-left: 40px; font-size: 16px; }
+  .response-source { font-size: 14px; }
+}
+
 /* Branching scenario practice */
 .scenario-library, .scenario-view { max-width: 1040px; margin: 0 auto; }
 .scenario-hero { min-height: 210px; position: relative; overflow: hidden; padding: 31px 36px; border-radius: 15px; color: white; background: #526c72; }

@@ -17,13 +17,13 @@ import {
 } from "lucide-react";
 import { apiRequest, clearAuth, saveAuth, type AuthResult, type AuthUser, type LessonSummary, type LessonDetail, type LearningQuestion, type LearningProgress, type LearningReview, type Preferences, type ScenarioDetail, type ScenarioProgress, type ScenarioResponse, type ScenarioStep, type ScenarioSummary, type ChatConversation, type ChatMessage, type ChatReference, type ForumFeed, type ForumPost } from "./api";
 
-type Screen = "Learning" | "Scenario" | "Chatbot" | "Forum" | "Profile";
+type Screen = "Observations" | "Responses" | "Scenario" | "Chatbot" | "Forum" | "Profile";
 const screens: { name: Screen; icon: typeof BookOpen }[] = [
-  { name: "Learning", icon: BookOpen },
+  { name: "Observations", icon: BookOpen },
+  { name: "Responses", icon: Heart },
   { name: "Scenario", icon: Compass },
   { name: "Chatbot", icon: MessageCircle },
   { name: "Forum", icon: UsersRound },
-  { name: "Profile", icon: Heart },
 ];
 
 function PipImage({ className = "", alt = "Pip the penguin" }: { className?: string; alt?: string }) {
@@ -90,7 +90,7 @@ function AuthScreen({ onAuthenticated, theme, onToggleTheme }: { onAuthenticated
   );
 }
 
-function LearningScreen({ onProgress, initialLessonId }: { onProgress: (progress: LearningProgress) => void; initialLessonId?: string }) {
+function ObservationsScreen({ onProgress, initialLessonId }: { onProgress: (progress: LearningProgress) => void; initialLessonId?: string }) {
   const [lessons, setLessons] = useState<LessonSummary[]>([]);
   const [progress, setProgress] = useState<LearningProgress | null>(null);
   const [reviews, setReviews] = useState<LearningReview[]>([]);
@@ -198,7 +198,7 @@ function LearningScreen({ onProgress, initialLessonId }: { onProgress: (progress
 
   return <>
     <div className="welcome-banner">
-      <div><p className="eyebrow">LEARNING</p><h1>Notice the cue. Make room for context.</h1><p>Short lessons for everyday conversations.</p></div>
+      <div><p className="eyebrow">OBSERVATIONS</p><h1>Notice the cue. Make room for context.</h1><p>Short lessons for everyday conversations.</p></div>
       <PipImage className="banner-penguin pip-motion" alt="Pip reading a coral journal" />
     </div>
     {progress && <div className="learning-progress"><span><strong>{progress.completed_lessons.length}</strong> lessons completed</span><span><strong>{progress.correct_answers}</strong> correct answers</span><span><strong>{progress.due_reviews}</strong> reviews due</span></div>}
@@ -210,11 +210,66 @@ function LearningScreen({ onProgress, initialLessonId }: { onProgress: (progress
       {lessons.map((lesson, index) => <article className={`lesson-card lesson-tone-${index % 4} ${lesson.locked ? "locked" : ""}`} key={lesson.id}>
         <div className="lesson-card-top"><span className="lesson-icon"><BookOpen size={20} /></span><span className="lesson-duration">{lesson.estimated_duration_minutes} min</span></div>
         <p className="lesson-topic">{lesson.topic}{lesson.is_premium ? " · PREMIUM" : ""}</p><h3>{lesson.title}</h3><p className="lesson-description">{lesson.description}</p><small className="recommendation-reason">{lesson.recommendation_reason}</small>
-        <div className="lesson-card-bottom"><span className="difficulty">{lesson.completed ? "completed" : lesson.difficulty}</span><button aria-label={`${lesson.locked ? "Locked" : "Open"} ${lesson.title}`} className="round-arrow" disabled={lesson.locked || busy} onClick={() => void openLesson(lesson.id)}>{lesson.locked ? <ShieldCheck size={16} /> : <ChevronRight size={18} />}</button></div>
+        <div className="lesson-card-bottom">{lesson.completed && <span className="difficulty">Completed</span>}<button aria-label={`${lesson.locked ? "Locked" : "Open"} ${lesson.title}`} className="round-arrow" disabled={lesson.locked || busy} onClick={() => void openLesson(lesson.id)}>{lesson.locked ? <ShieldCheck size={16} /> : <ChevronRight size={18} />}</button></div>
       </article>)}
     </div>
     {!lessons.length && !error && <div className="loading-card"><span className="loading-dot" /> Finding your first lessons…</div>}
   </>;
+}
+
+const responsePractices = [
+  {
+    id: "grounding",
+    title: "When everything feels overwhelming",
+    method: "Grounding",
+    summary: "Bring attention back to what is happening around you, one sense at a time.",
+    steps: ["Notice where you are and what you are doing.", "Name a few things you can see, hear, and feel against your body.", "Let your attention move gently between those details and the next small thing you need to do."],
+    source: "WHO stress guide",
+    url: "https://www.who.int/publications/b/53604",
+  },
+  {
+    id: "breathing",
+    title: "When your body feels tense",
+    method: "Gentle breathing",
+    summary: "Try a few minutes of steady, comfortable breathing. There is no need to take a very deep breath.",
+    steps: ["Settle into a comfortable position, if you can.", "Breathe in gently through your nose and out through your mouth, without forcing it.", "If counting feels comfortable, count slowly to five on the inhale and again on the exhale. Stop or return to normal breathing if this feels uncomfortable."],
+    source: "NHS breathing exercise",
+    url: "https://www.nhs.uk/mental-health/self-help/guides-tools-and-activities/breathing-exercises-for-stress/",
+  },
+  {
+    id: "unhooking",
+    title: "When a thought keeps looping",
+    method: "Notice and name",
+    summary: "Make a little space around a thought instead of treating it as a fact or trying to force it away.",
+    steps: ["Notice the thought that keeps returning.", "Try phrasing it as: “I’m noticing the thought that …”", "Bring your attention back to the present, then choose one small action that matters to you."],
+    source: "WHO stress guide",
+    url: "https://www.who.int/publications/b/53604",
+  },
+  {
+    id: "small-step",
+    title: "When starting feels difficult",
+    method: "One values-led step",
+    summary: "Choose a small action connected to what matters to you; it does not need to change your whole day.",
+    steps: ["Name one thing that matters to you right now, such as rest, connection, or care.", "Pick a step that could take a few minutes: drink water, open a window, or send a simple message.", "Do the step at your own pace, and notice what you need next."],
+    source: "WHO stress guide",
+    url: "https://www.who.int/publications/b/53604",
+  },
+];
+
+function ResponsesScreen() {
+  return <section className="responses-layout">
+    <div className="welcome-banner responses-hero">
+      <div><p className="eyebrow">RESPONSES</p><h1>A small step can help.</h1><p>Choose a practice that feels manageable.</p></div>
+      <PipImage className="banner-penguin pip-motion" alt="Pip with a learning journal" />
+    </div>
+    <div className="responses-note"><ShieldCheck size={18} /><p>These self-guided practices are educational, not diagnosis or treatment. They may not fit everyone.</p></div>
+    <div className="response-grid">{responsePractices.map((practice) => <details className="response-card" key={practice.id}>
+      <summary><span className="response-method">{practice.method}</span><h2>{practice.title}</h2><p>{practice.summary}</p><span className="response-open">View steps <ChevronRight size={16} /></span></summary>
+      <ol>{practice.steps.map((step) => <li key={step}>{step}</li>)}</ol>
+      <a className="response-source" href={practice.url} target="_blank" rel="noreferrer">Source: {practice.source}<ChevronRight size={14} /></a>
+    </details>)}</div>
+    <p className="responses-help">If you may hurt yourself or someone else, or cannot stay safe, contact your local emergency service or crisis support and reach out to someone you trust.</p>
+  </section>;
 }
 
 function ScenarioScreen({ initialScenarioId }: { initialScenarioId?: string }) {
@@ -492,7 +547,7 @@ function ProfileScreen({ user, onLogout, onEdit, onLearning, onScenarios, progre
 }
 
 function AppShell({ user, onUserUpdate, onLogout, onboardingPending, theme, onToggleTheme }: { user: AuthUser; onUserUpdate: (user: AuthUser) => void; onLogout: () => void; onboardingPending: boolean; theme: "light" | "dark"; onToggleTheme: () => void }) {
-  const [screen, setScreen] = useState<Screen>("Learning");
+  const [screen, setScreen] = useState<Screen>("Observations");
   const [showOnboarding, setShowOnboarding] = useState(onboardingPending);
   const [returnToProfile, setReturnToProfile] = useState(false);
   const [progress, setProgress] = useState<LearningProgress | null>(null);
@@ -502,15 +557,15 @@ function AppShell({ user, onUserUpdate, onLogout, onboardingPending, theme, onTo
     const saved = await apiRequest<Preferences>("/api/learning/preferences", { method: "PUT", body: JSON.stringify(preferences) });
     onUserUpdate({ ...user, preferences: saved });
     setShowOnboarding(false);
-    setScreen(returnToProfile ? "Profile" : "Learning");
+    setScreen(returnToProfile ? "Profile" : "Observations");
     setReturnToProfile(false);
   }
 
   return <div className={`app-shell ${sidebarOpen ? "sidebar-open" : ""}`}>
     <a className="skip-link" href="#main-content">Skip to main content</a>
     {sidebarOpen && <button className="sidebar-scrim" aria-label="Close navigation" onClick={() => setSidebarOpen(false)} />}
-    <aside className="sidebar" hidden={!sidebarOpen}><div className="sidebar-top"><a className="brand" href="#home"><span className="brand-mark">b.</span> BodyLingo</a><button className="icon-button sidebar-close" aria-label="Close navigation" onClick={() => setSidebarOpen(false)}><X size={20} /></button></div><div className="sidebar-label">NAVIGATION</div><nav aria-label="Main navigation" className="side-nav">{screens.map(({ name, icon: Icon }) => <button key={name} className={`nav-link ${screen === name ? "active" : ""}`} aria-current={screen === name ? "page" : undefined} onClick={() => { setScreen(name); setSidebarOpen(false); }}><Icon size={19} strokeWidth={1.8} /><span>{name}</span></button>)}</nav><div className="sidebar-bottom"><button className="user-mini" onClick={() => { setScreen("Profile"); setSidebarOpen(false); }}><span className="mini-avatar">{user.username.slice(0, 1).toUpperCase()}</span><span><strong>{user.username}</strong><small>Profile</small></span><ChevronRight size={16} /></button></div></aside>
-    <main className="main-column" id="main-content" tabIndex={-1}><header className="topbar"><button className="icon-button sidebar-toggle" aria-label={sidebarOpen ? "Close navigation" : "Open navigation"} aria-expanded={sidebarOpen} onClick={() => setSidebarOpen((open) => !open)}>{sidebarOpen ? <X size={21} /> : <Menu size={21} />}</button><div className="mobile-brand"><span className="brand-mark">b.</span> BodyLingo</div><div className="topbar-actions"><button className="icon-button theme-toggle" aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`} onClick={onToggleTheme}>{theme === "light" ? <Moon size={19} /> : <Sun size={19} />}</button><button className="top-avatar" aria-label="Open profile" onClick={() => setScreen("Profile")}>{user.username.slice(0, 1).toUpperCase()}</button></div></header><div className="content-area" key={`${screen}-${showOnboarding}`}>{showOnboarding ? <OnboardingScreen initial={user.preferences} onSaved={savePreferences} /> : screen === "Learning" ? <LearningScreen onProgress={setProgress} initialLessonId={pendingReference?.type === "lesson" ? pendingReference.id : undefined} /> : screen === "Scenario" ? <ScenarioScreen initialScenarioId={pendingReference?.type === "scenario" ? pendingReference.id : undefined} /> : screen === "Chatbot" ? <ChatScreen onOpenReference={(reference) => { setPendingReference(reference); setScreen(reference.type === "lesson" ? "Learning" : "Scenario"); }} /> : screen === "Forum" ? <ForumScreen /> : <ProfileScreen user={user} onLogout={onLogout} progress={progress} onEdit={() => { setReturnToProfile(true); setShowOnboarding(true); }} onLearning={() => setScreen("Learning")} onScenarios={() => setScreen("Scenario")} />}</div></main>
+    <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}><div className="sidebar-top"><a className="brand" href="#home"><span className="brand-mark">b.</span> BodyLingo</a><button className="icon-button sidebar-close" aria-label="Close navigation" onClick={() => setSidebarOpen(false)}><X size={20} /></button></div><div className="sidebar-label">NAVIGATION</div><nav aria-label="Main navigation" className="side-nav">{screens.map(({ name, icon: Icon }) => <button key={name} className={`nav-link ${screen === name ? "active" : ""}`} aria-current={screen === name ? "page" : undefined} onClick={() => { setScreen(name); setSidebarOpen(false); }}><Icon size={19} strokeWidth={1.8} /><span>{name}</span></button>)}</nav><div className="sidebar-bottom"><button className="user-mini" onClick={() => { setScreen("Profile"); setSidebarOpen(false); }}><span className="mini-avatar">{user.username.slice(0, 1).toUpperCase()}</span><span><strong>{user.username}</strong><small>Profile</small></span><ChevronRight size={16} /></button></div></aside>
+    <main className="main-column" id="main-content" tabIndex={-1}><header className="topbar"><button className="icon-button sidebar-toggle" aria-label={sidebarOpen ? "Close navigation" : "Open navigation"} aria-expanded={sidebarOpen} onClick={() => setSidebarOpen((open) => !open)}>{sidebarOpen ? <X size={21} /> : <Menu size={21} />}</button><div className="mobile-brand"><span className="brand-mark">b.</span> BodyLingo</div><div className="topbar-actions"><button className="icon-button theme-toggle" aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`} onClick={onToggleTheme}>{theme === "light" ? <Moon size={19} /> : <Sun size={19} />}</button><button className="top-avatar" aria-label="Open profile" onClick={() => setScreen("Profile")}>{user.username.slice(0, 1).toUpperCase()}</button></div></header><div className="content-area" key={`${screen}-${showOnboarding}`}>{showOnboarding ? <OnboardingScreen initial={user.preferences} onSaved={savePreferences} /> : screen === "Observations" ? <ObservationsScreen onProgress={setProgress} initialLessonId={pendingReference?.type === "lesson" ? pendingReference.id : undefined} /> : screen === "Responses" ? <ResponsesScreen /> : screen === "Scenario" ? <ScenarioScreen initialScenarioId={pendingReference?.type === "scenario" ? pendingReference.id : undefined} /> : screen === "Chatbot" ? <ChatScreen onOpenReference={(reference) => { setPendingReference(reference); setScreen(reference.type === "lesson" ? "Observations" : "Scenario"); }} /> : screen === "Forum" ? <ForumScreen /> : <ProfileScreen user={user} onLogout={onLogout} progress={progress} onEdit={() => { setReturnToProfile(true); setShowOnboarding(true); }} onLearning={() => setScreen("Observations")} onScenarios={() => setScreen("Scenario")} />}</div></main>
     <nav aria-label="Mobile navigation" className="bottom-nav">{screens.map(({ name, icon: Icon }) => <button key={name} className={screen === name ? "selected" : ""} aria-current={screen === name ? "page" : undefined} onClick={() => setScreen(name)}><Icon size={20} /><span>{name}</span></button>)}</nav>
   </div>;
 }
