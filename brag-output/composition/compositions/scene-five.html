@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <body>
+    <template>
+      <div class="scene-root" data-composition-id="scene-five" data-width="1920" data-height="1080">
+        <div class="close-lockup" id="close-lockup">
+          <div class="brand"><span class="brand-mark">b.</span><span>bodylingo</span></div>
+          <p class="close-line" id="close-line">There’s more than one way to connect.</p>
+          <p class="close-tagline" id="close-tagline">Communication, with care</p>
+          <span class="close-rule" id="close-rule"></span>
+        </div>
+      </div>
+      <script>
+        const tl = gsap.timeline({ paused: true });
+        tl.fromTo("#close-lockup", { opacity: 0, scale: 0.975, y: 18 }, { opacity: 1, scale: 1, y: 0, duration: 0.72, ease: "power3.out" }, 0.24);
+        tl.fromTo("#close-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.52, ease: "power2.out" }, 1.62); // starts at global 19.62s, aligned to the 19.655s beat
+        window.__timelines["scene-five"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

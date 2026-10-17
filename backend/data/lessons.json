@@ -1,0 +1,140 @@
+[
+  {
+    "id": "facial-expressions",
+    "title": "Facial Expressions Without Assumptions",
+    "description": "Notice facial expressions while keeping more than one interpretation in mind.",
+    "topic": "facial expressions",
+    "difficulty": "beginner",
+    "estimated_duration_minutes": 8,
+    "learning_objectives": [
+      "Describe an expression without assigning intent",
+      "Consider context and individual differences",
+      "Use a respectful question when you are unsure"
+    ],
+    "communication_context": "Everyday conversations where a person's expression seems different from their words.",
+    "introduction": "A facial expression can offer information, but it is only one part of a conversation. People show emotion differently, and the same expression can mean different things in different situations.",
+    "communication_cue": "A furrowed brow or a brief smile",
+    "explanation": "Try separating what you can observe from what you think it means. A furrowed brow is observable; deciding that someone is angry is an interpretation. Their words, the situation, and what they say about their own feelings all matter.",
+    "examples": [
+      {"situation": "A teammate furrows their brow while reading your message.", "possible_interpretation": "They may be concentrating, confused, reacting to something else, or feeling frustrated. The expression alone cannot tell you which."},
+      {"situation": "A friend smiles while saying they are nervous.", "possible_interpretation": "Some people smile when nervous or to be friendly. Their words are useful context."}
+    ],
+    "knowledge_check": {"question": "You notice someone frowning during a conversation. What is a useful next step?", "options": ["Assume they are upset with you", "Consider the context and ask gently if something is on their mind", "Ignore everything they say"], "answer": "Consider the context and ask gently if something is on their mind"},
+    "key_takeaway": "Notice expressions; do not treat them as proof of someone's feelings or intentions."
+  },
+  {
+    "id": "tone-and-context",
+    "title": "Tone of Voice and Context",
+    "description": "Explore how tone, words, and situation can shape the meaning of a message.",
+    "topic": "tone of voice",
+    "difficulty": "beginner",
+    "estimated_duration_minutes": 7,
+    "learning_objectives": [
+      "Recognize that tone can be interpreted in different ways",
+      "Use surrounding context to understand a message",
+      "Check meaning instead of reacting to a guess"
+    ],
+    "communication_context": "Spoken conversations, phone calls, and short messages read aloud.",
+    "introduction": "The same words can sound warm, tired, serious, or playful depending on the speaker and situation. People also differ in how much vocal expression they use.",
+    "communication_cue": "Pitch, volume, pace, and emphasis",
+    "explanation": "Tone is one clue among several. It can be affected by stress, fatigue, the environment, culture, or a person's natural speaking style. If the meaning matters, check what the speaker intended instead of relying on tone alone.",
+    "examples": [
+      {"situation": "Someone says “That is great” in a flat voice after a long day.", "possible_interpretation": "They might be tired, speaking neutrally, distracted, or using sarcasm. The voice alone does not settle the meaning."},
+      {"situation": "A colleague speaks loudly in a noisy room.", "possible_interpretation": "They may be trying to be heard rather than expressing anger."}
+    ],
+    "knowledge_check": {"question": "A person's voice sounds serious. What else could help you understand their meaning?", "options": ["The words and situation", "Only the volume", "A guess about their personality"], "answer": "The words and situation"},
+    "key_takeaway": "Tone can guide a question, but context and the speaker's own explanation matter."
+  },
+  {
+    "id": "eye-contact",
+    "title": "Eye Contact and Communication Preferences",
+    "description": "Understand that eye contact is personal and is not a reliable measure of attention or honesty.",
+    "topic": "eye contact",
+    "difficulty": "beginner",
+    "estimated_duration_minutes": 8,
+    "learning_objectives": [
+      "Recognize that eye-contact preferences vary",
+      "Avoid judging attention or honesty by gaze alone",
+      "Make space for comfortable ways of listening"
+    ],
+    "communication_context": "One-to-one conversations, meetings, classrooms, and interviews.",
+    "introduction": "People have different comfort levels with eye contact. Looking away can help someone think or feel comfortable, while direct gaze can also feel intense for some people.",
+    "communication_cue": "How often someone looks toward another person's eyes",
+    "explanation": "Eye contact is shaped by personal preference, culture, situation, sensory comfort, and many other factors. It does not reliably show whether someone is listening, truthful, confident, or interested. Pay attention to what they communicate and ask what helps them feel comfortable.",
+    "examples": [
+      {"situation": "A learner looks down while listening.", "possible_interpretation": "They may be focused, thinking, or more comfortable looking elsewhere."},
+      {"situation": "A coworker makes steady eye contact.", "possible_interpretation": "That may be their comfortable style; it does not establish confidence or agreement."}
+    ],
+    "knowledge_check": {"question": "What can you conclude from someone looking away while you speak?", "options": ["They are definitely ignoring you", "There are several possible reasons; gaze alone is not enough", "They are being dishonest"], "answer": "There are several possible reasons; gaze alone is not enough"},
+    "key_takeaway": "Respect different eye-contact preferences and do not use gaze as a test of attention or character."
+  },
+  {
+    "id": "space-and-breaks",
+    "title": "Noticing When Someone May Need Space",
+    "description": "Respond thoughtfully when someone appears to want more space or a pause.",
+    "topic": "personal space and breaks",
+    "difficulty": "intermediate",
+    "estimated_duration_minutes": 9,
+    "learning_objectives": [
+      "Notice changes without treating them as certainty",
+      "Offer a low-pressure option to pause",
+      "Respect a person's answer and boundaries"
+    ],
+    "communication_context": "Busy social settings, long conversations, group activities, or emotionally demanding moments.",
+    "introduction": "Someone becoming quieter or stepping away may be a cue to check in. It does not tell you exactly what they need, so offer choices without pressure.",
+    "communication_cue": "A change in participation, distance, or energy",
+    "explanation": "People may need a break for many reasons, or they may simply be occupied or ready to leave. A kind, specific offer gives the person control: they can accept, decline, or say what would help. Avoid following, touching, or demanding an explanation.",
+    "examples": [
+      {"situation": "A friend gets quieter at a crowded event.", "possible_interpretation": "They may be tired, processing the conversation, or simply listening. You can offer a quieter place or a break."},
+      {"situation": "A colleague moves to a quieter area during a team activity.", "possible_interpretation": "They may want less noise or have another reason. Give them room and ask if they would like anything."}
+    ],
+    "knowledge_check": {"question": "Which check-in gives the other person the most choice?", "options": ["“Why are you acting strange?”", "“Would a break or a quieter spot help, or would you rather continue?”", "Follow them until they explain"], "answer": "“Would a break or a quieter spot help, or would you rather continue?”"},
+    "key_takeaway": "Offer a break or space as an option, then respect the person's choice."
+  },
+  {
+    "id": "clarifying-needs",
+    "title": "Asking for Clarification Respectfully",
+    "description": "Use clear, considerate questions to check meaning and communicate your own needs.",
+    "topic": "clarification and self-advocacy",
+    "difficulty": "beginner",
+    "estimated_duration_minutes": 8,
+    "learning_objectives": [
+      "Ask neutral questions about unclear messages",
+      "State a communication need directly and kindly",
+      "Avoid framing clarification as blame"
+    ],
+    "communication_context": "Instructions, plans, indirect requests, and moments when people understand a message differently.",
+    "introduction": "Clarifying questions can prevent misunderstandings. Clear communication is a shared responsibility, and it is reasonable to ask for the detail you need.",
+    "communication_cue": "A pause, indirect request, or message with more than one possible meaning",
+    "explanation": "Use a neutral question that names what is unclear. You can also explain what format helps you, such as written steps, more time to think, or a direct request. Give the other person room to clarify without implying they communicated badly on purpose.",
+    "examples": [
+      {"situation": "Someone says, “We should catch up sometime.”", "possible_interpretation": "They may be suggesting a real plan or speaking warmly without setting a date. You could ask, “Would you like to choose a day?”"},
+      {"situation": "You receive several spoken instructions at once.", "possible_interpretation": "You can say, “Could you send those steps in a message so I can follow them?”"}
+    ],
+    "knowledge_check": {"question": "Which question checks meaning without assigning blame?", "options": ["“What exactly do you mean by that?”", "“Do you mean today, or would another day work better?”", "“Why are you being unclear?”"], "answer": "“Do you mean today, or would another day work better?”"},
+    "key_takeaway": "Ask specific, neutral questions and state the support or communication format that works for you."
+  },
+  {
+    "id": "gestures-and-culture",
+    "title": "Gestures, Culture, and Context",
+    "description": "Explore why gestures can carry different meanings across people and places.",
+    "topic": "gestures and cultural variation",
+    "difficulty": "intermediate",
+    "estimated_duration_minutes": 9,
+    "learning_objectives": [
+      "Recognize that gestures do not have one universal meaning",
+      "Consider setting and cultural context without stereotyping",
+      "Ask respectfully when a gesture is unfamiliar"
+    ],
+    "communication_context": "Travel, cross-cultural conversations, and mixed-background teams.",
+    "introduction": "A gesture can be familiar in one setting and unfamiliar in another. People also use gestures differently as individuals, so context matters more than a memorized rule.",
+    "communication_cue": "A hand movement, posture, or culturally specific sign",
+    "explanation": "Avoid treating a gesture as proof of someone's attitude or intent. Meanings can vary across communities, situations, and individuals. If it matters, describe what you noticed and ask an open question. A person may also prefer not to explain their culture, and that choice deserves respect.",
+    "examples": [
+      {"situation": "A visitor sees a hand gesture they do not recognize.", "possible_interpretation": "It may have a local meaning, be personal emphasis, or be incidental. A respectful question is safer than assuming."},
+      {"situation": "A teammate uses gestures differently from you.", "possible_interpretation": "This may reflect personal style or context; it does not establish agreement, disrespect, or emotion."}
+    ],
+    "knowledge_check": {"question": "You see an unfamiliar gesture. What is a respectful response?", "options": ["Assume it means the same thing everywhere", "Consider context and ask openly if appropriate", "Decide what the person intended"], "answer": "Consider context and ask openly if appropriate"},
+    "key_takeaway": "Gestures can vary; stay curious, avoid stereotypes, and let people describe their own meaning."
+  }
+]

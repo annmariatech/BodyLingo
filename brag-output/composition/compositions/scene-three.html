@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <body>
+    <template>
+      <div class="scene-root" data-composition-id="scene-three" data-width="1920" data-height="1080">
+        <header class="topline"><div class="brand"><span class="brand-mark">b.</span><span>bodylingo</span></div><div class="topline-note">A MOMENT TO PRACTISE</div></header>
+        <div class="quiz-lead" id="quiz-lead">
+          <p class="eyebrow">NOTICE · CONSIDER · ASK</p>
+          <h1 class="headline">Let context join the conversation.</h1>
+          <p class="support">A quiz from the real lesson, with room for more than one possibility.</p>
+        </div>
+        <article class="quiz-card" id="quiz-card">
+          <div class="quiz-progress"><span>LESSON CHECK</span><span class="progress-track"><span class="progress-fill"></span></span></div>
+          <h2>You notice someone frowning during a conversation. What is a useful next step?</h2>
+          <div class="answer" id="answer-one"><span class="answer-mark" aria-hidden="true"></span><span>Assume they are upset with you</span></div>
+          <div class="answer chosen" id="answer-two"><span class="answer-mark">✓</span><span>Consider the context and ask gently if something is on their mind</span></div>
+          <div class="answer" id="answer-three"><span class="answer-mark" aria-hidden="true"></span><span>Ignore everything they say</span></div>
+          <div class="feedback" id="quiz-feedback"><span class="feedback-check">✓</span><span><strong>That’s right.</strong> A cue can invite a question, not an assumption.</span></div>
+        </article>
+      </div>
+      <script>
+        const tl = gsap.timeline({ paused: true });
+        tl.fromTo("#quiz-lead", { opacity: 0, x: -32 }, { opacity: 1, x: 0, duration: 0.55, ease: "power3.out" }, 0.08);
+        tl.fromTo("#quiz-card", { opacity: 0, x: 48, scale: 0.985 }, { opacity: 1, x: 0, scale: 1, duration: 0.58, ease: "power3.out" }, 0.28);
+        tl.fromTo(["#answer-one", "#answer-two", "#answer-three"], { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.34, stagger: 0.14, ease: "power2.out" }, 1.12);
+        tl.fromTo("#quiz-feedback", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.42, ease: "power2.out" }, 2.32);
+        window.__timelines["scene-three"] = tl;
+      </script>
+    </template>
+  </body>
+</html>
