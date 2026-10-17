@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <body>
+    <template>
+      <div class="scene-root" data-composition-id="scene-one" data-width="1920" data-height="1080">
+        <header class="topline">
+          <div class="brand"><span class="brand-mark">b.</span><span>bodylingo</span></div>
+          <div class="topline-note">COMMUNICATION, WITH CARE</div>
+        </header>
+        <div class="hook-copy">
+          <p class="eyebrow" id="hook-eyebrow">ONE CUE. MORE THAN ONE POSSIBILITY.</p>
+          <h1 class="headline" id="hook-title">A furrowed brow.</h1>
+          <p class="support" id="hook-support">What might it mean?</p>
+        </div>
+        <article class="cue-card" id="cue-card">
+          <span class="cue-symbol" aria-hidden="true">~</span>
+          <p class="tiny-label">A CUE TO NOTICE</p>
+          <h2>A furrowed brow or a brief smile</h2>
+          <p>The expression is something you can notice. Its meaning may need context.</p>
+          <div class="possibility-row"><div class="possibility" id="possibility-one">The situation</div><div class="possibility" id="possibility-two">Their own words</div></div>
+          <div class="cue-foot">Curiosity before certainty.</div>
+        </article>
+      </div>
+      <script>
+        const tl = gsap.timeline({ paused: true });
+        tl.fromTo("#hook-eyebrow", { opacity: 0, x: -28 }, { opacity: 1, x: 0, duration: 0.45, ease: "power3.out" }, 0.12);
+        tl.fromTo("#hook-title", { opacity: 0, y: 34 }, { opacity: 1, y: 0, duration: 0.62, ease: "power3.out" }, 0.28);
+        tl.fromTo("#hook-support", { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.48, ease: "power2.out" }, 0.74);
+        tl.fromTo("#cue-card", { opacity: 0, x: 74, scale: 0.975 }, { opacity: 1, x: 0, scale: 1, duration: 0.62, ease: "power3.out" }, 0.34);
+        tl.fromTo("#possibility-one", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.36, ease: "power2.out" }, 1.38);
+        tl.fromTo("#possibility-two", { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.36, ease: "power2.out" }, 1.58); // beat-locked: global 1.635s
+        window.__timelines["scene-one"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

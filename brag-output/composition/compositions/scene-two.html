@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <body>
+    <template>
+      <div class="scene-root" data-composition-id="scene-two" data-width="1920" data-height="1080">
+        <div class="app-window" id="app-window">
+          <aside class="app-sidebar">
+            <div class="brand"><span class="brand-mark">b.</span><span>bodylingo</span></div>
+            <div class="nav-list">
+              <div class="nav-item selected"><span class="nav-dot"></span>Learning</div>
+              <div class="nav-item"><span class="nav-dot"></span>Scenario</div>
+              <div class="nav-item"><span class="nav-dot"></span>Chatbot</div>
+              <div class="nav-item"><span class="nav-dot"></span>Forum</div>
+              <div class="nav-item"><span class="nav-dot"></span>Profile</div>
+            </div>
+            <div class="sidebar-note">A little more understanding, every day.</div>
+          </aside>
+          <main class="app-main">
+            <header class="app-header"><span>YOUR LEARNING SPACE</span><span class="app-user"><span class="avatar">P</span> Your learning path</span></header>
+            <h1 class="learning-title">Lessons for real life</h1>
+            <p class="learning-subtitle">Grow your understanding, one moment at a time.</p>
+            <article class="lesson-preview" id="lesson-preview">
+              <div class="lesson-top"><span class="lesson-icon">✳</span><span class="lesson-min">8 min</span></div>
+              <p class="lesson-topic">FACIAL EXPRESSIONS · BEGINNER</p>
+              <h3>Facial Expressions Without Assumptions</h3>
+              <p>Notice facial expressions while keeping more than one interpretation in mind.</p>
+              <span class="lesson-open" aria-hidden="true">›</span>
+            </article>
+            <blockquote class="lesson-side-note" id="lesson-note">“Notice expressions; do not treat them as proof of someone’s feelings or intentions.”<span>A cue from the lesson</span></blockquote>
+          </main>
+        </div>
+      </div>
+      <script>
+        const tl = gsap.timeline({ paused: true });
+        tl.fromTo("#app-window", { opacity: 0, scale: 0.975, y: 24 }, { opacity: 1, scale: 1, y: 0, duration: 0.68, ease: "power3.out" }, 0.08);
+        tl.fromTo(".nav-item", { opacity: 0, x: -14 }, { opacity: 1, x: 0, duration: 0.36, stagger: 0.075, ease: "power2.out" }, 0.35);
+        tl.fromTo("#lesson-preview", { opacity: 0, y: 22 }, { opacity: 1, y: 0, duration: 0.54, ease: "power3.out" }, 1.08);
+        tl.fromTo("#lesson-note", { opacity: 0, x: 24 }, { opacity: 1, x: 0, duration: 0.46, ease: "power2.out" }, 1.52);
+        window.__timelines["scene-two"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

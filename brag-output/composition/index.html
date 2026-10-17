@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <title>BodyLingo — communication, with care</title>
+    <script src="./node_modules/gsap/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        color-scheme: light;
+        --paper: #f5f7f4;
+        --ink: #24322f;
+        --green: #356b56;
+        --green-dark: #285640;
+        --mint: #e6f0e9;
+        --cream: #f8f7f0;
+        --coral: #dd8d78;
+        --muted: #64746c;
+        --line: #dce7dd;
+      }
+      * { box-sizing: border-box; }
+      html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: var(--paper); }
+      body { color: var(--ink); font-family: Inter, system-ui, sans-serif; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: var(--paper); }
+      .ambient { position: absolute; z-index: 0; pointer-events: none; }
+      .ambient-ring { top: 78px; right: 80px; width: 670px; height: 670px; border: 2px solid #a9cbb2; border-radius: 50%; opacity: .24; }
+      .ambient-ring::before, .ambient-ring::after { content: ""; position: absolute; border: 2px solid #d0a38f; border-radius: 50%; }
+      .ambient-ring::before { inset: 48px; opacity: .6; }
+      .ambient-ring::after { inset: 100px; border-color: #a9cbb2; opacity: .72; }
+      .ambient-wash { left: -270px; bottom: -520px; width: 950px; height: 950px; border-radius: 50%; background: radial-gradient(circle, #dcecdf 0%, #edf3eb 48%, transparent 70%); opacity: .72; }
+      .sound-presence { top: 245px; right: 170px; width: 560px; height: 560px; border-radius: 50%; background: radial-gradient(circle, #9fc4a6 0%, #bfd8bd 36%, transparent 72%); opacity: .13; }
+      .clip { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; overflow: hidden; }
+      .scene-root { position: relative; width: 100%; height: 100%; overflow: hidden; background: transparent; }
+      .topline { position: absolute; top: 64px; left: 130px; right: 130px; display: flex; align-items: center; justify-content: space-between; }
+      .brand { display: inline-flex; align-items: center; gap: 15px; color: var(--green-dark); font-size: 27px; font-weight: 700; letter-spacing: -1.2px; }
+      .brand-mark { display: grid; width: 54px; height: 54px; place-items: center; border-radius: 18px; color: #f7fff8; background: var(--green); font: 700 38px/1 Georgia, serif; letter-spacing: -4px; padding: 0 4px 5px 0; }
+      .topline-note { color: #64746c; font-size: 21px; letter-spacing: .02em; }
+      .eyebrow { color: var(--green); font-size: 19px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; }
+      .serif { font-family: Georgia, serif; }
+      .headline { margin: 18px 0 0; color: var(--ink); font: 500 88px/1.04 Georgia, serif; letter-spacing: -3.4px; }
+      .support { margin: 23px 0 0; color: var(--muted); font-size: 34px; line-height: 1.38; }
+      .tiny-label { color: var(--green); font-size: 17px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; }
+
+      /* Scene 1 — one observed cue, held open to interpretation. */
+      .hook-copy { position: absolute; top: 265px; left: 160px; width: 760px; }
+      .hook-copy .headline { max-width: 710px; }
+      .hook-copy .support { max-width: 590px; }
+      .cue-card { position: absolute; top: 230px; right: 155px; width: 650px; min-height: 570px; padding: 48px 52px; border: 2px solid #c8decf; border-radius: 28px; background: #fffefa; box-shadow: 0 28px 70px #315d4b18; }
+      .cue-symbol { display: grid; width: 76px; height: 76px; place-items: center; margin-bottom: 32px; border-radius: 25px; color: #95634f; background: #f7ebe4; font: 600 47px/1 Georgia, serif; }
+      .cue-card h2 { margin: 13px 0 14px; color: #34473c; font: 500 44px/1.16 Georgia, serif; letter-spacing: -1px; }
+      .cue-card > p { margin: 0; color: var(--muted); font-size: 28px; line-height: 1.45; }
+      .possibility-row { display: flex; gap: 14px; margin-top: 31px; }
+      .possibility { flex: 1; min-height: 67px; display: flex; align-items: center; padding: 0 18px; border: 1px solid #dce7dd; border-radius: 13px; color: #4f6456; background: #f3f7f2; font-size: 20px; font-weight: 650; }
+      .cue-foot { margin-top: 25px; padding-top: 20px; border-top: 2px solid #e8ede5; color: #64746c; font-size: 20px; }
+
+      /* Scene 2 — faithful, simplified learning dashboard. */
+      .app-window { position: absolute; top: 145px; left: 145px; width: 1630px; height: 790px; overflow: hidden; border: 2px solid #dfe7de; border-radius: 26px; background: #fff; box-shadow: 0 30px 90px #2e514018; }
+      .app-sidebar { position: absolute; inset: 0 auto 0 0; width: 320px; padding: 35px 26px; border-right: 2px solid #e9eee8; background: #fbfcfa; }
+      .app-sidebar .brand { gap: 11px; font-size: 23px; }
+      .app-sidebar .brand-mark { width: 43px; height: 43px; border-radius: 14px; font-size: 31px; }
+      .nav-list { display: grid; gap: 10px; margin-top: 62px; }
+      .nav-item { display: flex; align-items: center; gap: 16px; min-height: 60px; padding: 0 16px; border-radius: 13px; color: #67776d; font-size: 21px; }
+      .nav-item.selected { color: var(--green-dark); background: #e9f2e9; font-weight: 750; }
+      .nav-dot { width: 16px; height: 16px; border: 3px solid currentColor; border-radius: 5px; }
+      .sidebar-note { position: absolute; right: 24px; bottom: 28px; left: 24px; padding: 19px; border-radius: 15px; color: #536b58; background: #f2f5e9; font-size: 18px; line-height: 1.45; }
+      .app-main { position: absolute; inset: 0 0 0 320px; padding: 42px 48px; }
+      .app-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 25px; border-bottom: 2px solid #eef1ec; color: #6c7a72; font-size: 19px; }
+      .app-user { display: flex; align-items: center; gap: 13px; color: #52655a; font-weight: 700; }
+      .avatar { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 50%; color: #42644c; background: #e4efe1; font-size: 20px; }
+      .learning-title { margin: 38px 0 5px; color: #34473c; font: 500 47px/1.15 Georgia, serif; letter-spacing: -1.4px; }
+      .learning-subtitle { margin: 0; color: #6c7972; font-size: 22px; }
+      .lesson-preview { position: relative; width: 790px; min-height: 335px; margin-top: 34px; padding: 31px 34px; border: 2px solid #dce9dc; border-radius: 21px; background: #fbfdf9; }
+      .lesson-top { display: flex; align-items: center; justify-content: space-between; }
+      .lesson-icon { display: grid; width: 56px; height: 56px; place-items: center; border-radius: 17px; color: var(--green); background: #e8f1e8; font-size: 29px; }
+      .lesson-min { padding: 9px 13px; border-radius: 20px; color: #5e7365; background: #edf3eb; font-size: 17px; }
+      .lesson-topic { margin: 24px 0 7px; color: #6d8d74; font-size: 16px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; }
+      .lesson-preview h3 { max-width: 630px; margin: 0; color: #3d5144; font: 500 36px/1.2 Georgia, serif; }
+      .lesson-preview p { max-width: 650px; margin: 12px 0 0; color: #6a786f; font-size: 20px; line-height: 1.45; }
+      .lesson-open { position: absolute; right: 28px; bottom: 26px; display: grid; width: 48px; height: 48px; place-items: center; border-radius: 50%; color: white; background: var(--green); font-size: 27px; }
+      .lesson-side-note { position: absolute; top: 240px; right: 55px; width: 310px; padding: 24px 25px; border-left: 3px solid #dd8d78; color: #586b5e; font: 500 26px/1.42 Georgia, serif; }
+      .lesson-side-note span { display: block; margin-top: 18px; color: #6c7a71; font: 500 17px/1.4 Inter, system-ui, sans-serif; }
+
+      /* Scene 3 — the real knowledge-check prompt and answer feedback. */
+      .quiz-lead { position: absolute; top: 260px; left: 155px; width: 610px; }
+      .quiz-lead .headline { font-size: 69px; line-height: 1.1; }
+      .quiz-lead .support { max-width: 500px; font-size: 29px; }
+      .quiz-card { position: absolute; top: 205px; right: 145px; width: 870px; min-height: 615px; padding: 42px 48px; border: 2px solid #d6e4d8; border-radius: 24px; background: #fff; box-shadow: 0 28px 80px #315d4b16; }
+      .quiz-progress { display: flex; align-items: center; justify-content: space-between; color: #617d67; font-size: 17px; font-weight: 800; letter-spacing: 2px; }
+      .progress-track { width: 240px; height: 10px; overflow: hidden; border-radius: 9px; background: #e7eee6; }
+      .progress-fill { width: 46%; height: 100%; border-radius: inherit; background: #71a07c; }
+      .quiz-card h2 { max-width: 760px; margin: 30px 0 25px; color: #35493e; font: 500 38px/1.22 Georgia, serif; }
+      .answer { display: flex; align-items: center; gap: 15px; min-height: 78px; margin-top: 12px; padding: 14px 19px; border: 2px solid #e4eae3; border-radius: 14px; color: #627169; background: #fff; font-size: 21px; line-height: 1.35; }
+      .answer-mark { flex: 0 0 auto; display: grid; width: 28px; height: 28px; place-items: center; border: 2px solid #bcc9bd; border-radius: 50%; color: transparent; font-size: 18px; }
+      .answer.chosen { border-color: #6e9c76; color: #365e43; background: #f0f7ef; font-weight: 700; }
+      .answer.chosen .answer-mark { border-color: #4f805b; color: white; background: #4f805b; }
+      .feedback { display: flex; align-items: center; gap: 14px; margin-top: 18px; padding: 15px 18px; border-radius: 13px; color: #416849; background: #edf6ed; font-size: 20px; line-height: 1.4; }
+      .feedback-check { display: grid; flex: 0 0 auto; width: 34px; height: 34px; place-items: center; border-radius: 50%; color: white; background: #54845c; font-weight: 800; }
+
+      /* Scene 4 — real branching scenario with multiple respectful choices. */
+      .scenario-head { position: absolute; top: 172px; left: 145px; width: 770px; }
+      .scenario-head .headline { max-width: 720px; font-size: 70px; }
+      .scenario-head .support { max-width: 720px; font-size: 27px; }
+      .scenario-prompt { position: absolute; top: 525px; left: 145px; width: 700px; padding: 24px 28px; border-left: 4px solid #dd8d78; color: #43574a; background: #fffdf7; font: 500 26px/1.4 Georgia, serif; box-shadow: 0 14px 36px #415b3f10; }
+      .choice-panel { position: absolute; top: 260px; right: 130px; width: 760px; padding: 29px; border: 2px solid #dce8dc; border-radius: 22px; background: #fff; box-shadow: 0 26px 70px #315d4b16; }
+      .choice-panel h2 { margin: 2px 0 19px; color: #3f5447; font: 500 32px/1.25 Georgia, serif; }
+      .scenario-choice { display: flex; align-items: center; gap: 17px; min-height: 92px; margin-top: 13px; padding: 16px 19px; border: 2px solid #e2eae1; border-radius: 15px; color: #566b5c; background: #fcfdfa; font-size: 22px; line-height: 1.35; }
+      .scenario-choice.selected { border-color: #6f9a75; color: #365e43; background: #eff6ec; }
+      .choice-number { display: grid; flex: 0 0 auto; width: 43px; height: 43px; place-items: center; border-radius: 50%; color: #507559; background: #eaf2e8; font-size: 18px; font-weight: 800; }
+      .branch-caption { margin: 23px 0 0; color: #6c7a72; font-size: 18px; }
+      .branch-line { position: absolute; top: 740px; right: 478px; width: 260px; height: 2px; background: #8cb296; transform-origin: right center; }
+      .branch-dot { position: absolute; top: 721px; right: 460px; width: 19px; height: 19px; border: 4px solid var(--paper); border-radius: 50%; background: #5d8a66; box-shadow: 0 0 0 2px #5d8a66; }
+      .branch-outcome { position: absolute; right: 150px; bottom: 102px; padding: 13px 18px; border: 2px solid #cfe0d0; border-radius: 13px; color: #41674a; background: #f3f8f0; font-size: 19px; font-weight: 700; }
+
+      /* Scene 5 — clean wordmark and readable close. */
+      .close-lockup { position: absolute; inset: 0; display: flex; width: 100%; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+      .close-lockup .brand { gap: 22px; font-size: 55px; letter-spacing: -2px; }
+      .close-lockup .brand-mark { width: 91px; height: 91px; border-radius: 28px; font-size: 64px; }
+      .close-line { max-width: 1220px; margin: 54px 0 0; color: #30463a; font: 500 72px/1.15 Georgia, serif; letter-spacing: -2px; }
+      .close-tagline { margin-top: 25px; color: #356b56; font-size: 25px; font-weight: 750; letter-spacing: 3px; text-transform: uppercase; }
+      .close-rule { width: 190px; height: 4px; margin-top: 34px; border-radius: 3px; background: #dd8d78; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="bodylingo-brag" data-start="0" data-duration="22" data-width="1920" data-height="1080">
+      <div class="ambient ambient-wash" data-layout-ignore></div>
+      <div class="ambient ambient-ring" data-layout-ignore></div>
+      <div class="ambient sound-presence" data-layout-ignore></div>
+
+      <audio id="bodylingo-music" src="assets/music/happy-beats-business-moves-vol-12-by-ende-dot-app.mp3" data-start="0" data-duration="22" data-track-index="10" data-volume="0.22" data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0},{"t":0.5,"v":1},{"t":20.8,"v":1},{"t":22,"v":0}]}]}'></audio>
+
+      <div id="scene-one" class="clip" data-composition-id="scene-one" data-composition-src="compositions/scene-one.html" data-start="0" data-duration="3" data-track-index="1" data-width="1920" data-height="1080"></div>
+      <div id="scene-two" class="clip" data-composition-id="scene-two" data-composition-src="compositions/scene-two.html" data-start="3" data-duration="4" data-track-index="2" data-width="1920" data-height="1080"></div>
+      <div id="scene-three" class="clip" data-composition-id="scene-three" data-composition-src="compositions/scene-three.html" data-start="7" data-duration="5" data-track-index="3" data-width="1920" data-height="1080"></div>
+      <div id="scene-four" class="clip" data-composition-id="scene-four" data-composition-src="compositions/scene-four.html" data-start="12" data-duration="6" data-track-index="4" data-width="1920" data-height="1080"></div>
+      <div id="scene-five" class="clip" data-composition-id="scene-five" data-composition-src="compositions/scene-five.html" data-start="18" data-duration="4" data-track-index="5" data-width="1920" data-height="1080"></div>
+    </div>
+    <script src="assets/music/audio-data.js"></script>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+
+      // Organic ambient motion stays behind the scenes and never competes with text.
+      tl.to(".ambient-ring", { rotation: 12, duration: 22, ease: "none" }, 0);
+      tl.to(".ambient-wash", { scale: 1.035, duration: 11, yoyo: true, repeat: 1, ease: "sine.inOut" }, 0);
+
+      // Per-frame, pre-extracted music energy gives an existing brand halo a quiet breath.
+      const audioData = window.BODYLINGO_AUDIO;
+      if (audioData) {
+        for (let frameIndex = 0; frameIndex < audioData.totalFrames; frameIndex += 1) {
+          const frame = audioData.frames[frameIndex];
+          const energy = frame.bands.reduce((sum, band) => sum + band, 0) / frame.bands.length;
+          tl.call(() => {
+            gsap.set("#root .sound-presence", { scale: 1 + energy * 0.035, opacity: 0.10 + energy * 0.06 });
+          }, [], frameIndex / audioData.fps);
+        }
+      }
+
+      window.__timelines["bodylingo-brag"] = tl;
+    </script>
+  </body>
+</html>

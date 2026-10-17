@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <body>
+    <template>
+      <div class="scene-root" data-composition-id="scene-four" data-width="1920" data-height="1080">
+        <header class="topline"><div class="brand"><span class="brand-mark">b.</span><span>bodylingo</span></div><div class="topline-note">PRACTICE WITH POSSIBILITY</div></header>
+        <div class="scenario-head" id="scenario-head">
+          <p class="eyebrow">BRANCHING PRACTICE</p>
+          <h1 class="headline">Try a moment from everyday life.</h1>
+          <p class="support">Explore different responses and their possible effects.</p>
+        </div>
+        <blockquote class="scenario-prompt" id="scenario-prompt">A teammate who has been contributing becomes quiet during a busy meeting. What do you do?</blockquote>
+        <article class="choice-panel" id="choice-panel">
+          <h2>Choose a response</h2>
+          <div class="scenario-choice selected" id="choice-one"><span class="choice-number">1</span><span>Check in privately and ask if a different format would help.</span></div>
+          <div class="scenario-choice" id="choice-two"><span class="choice-number">2</span><span>Offer the group a pause and invite written input as one option.</span></div>
+          <p class="branch-caption">A private, open question leaves room for many explanations.</p>
+        </article>
+        <div class="branch-line" id="branch-line" aria-hidden="true"></div>
+        <div class="branch-dot" id="branch-dot" aria-hidden="true"></div>
+        <div class="branch-outcome" id="branch-outcome">Choice creates room to connect.</div>
+      </div>
+      <script>
+        const tl = gsap.timeline({ paused: true });
+        tl.fromTo("#scenario-head", { opacity: 0, x: -24 }, { opacity: 1, x: 0, duration: 0.55, ease: "power3.out" }, 0.08);
+        tl.fromTo("#scenario-prompt", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, 0.42);
+        tl.fromTo("#choice-panel", { opacity: 0, x: 48, scale: 0.985 }, { opacity: 1, x: 0, scale: 1, duration: 0.58, ease: "power3.out" }, 0.18);
+        tl.fromTo("#choice-one", { opacity: 0, x: 16 }, { opacity: 1, x: 0, duration: 0.38, ease: "power2.out" }, 0.72);
+        tl.fromTo("#choice-two", { opacity: 0, x: 16 }, { opacity: 1, x: 0, duration: 0.38, ease: "power2.out" }, 0.94);
+        tl.fromTo("#branch-line", { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.42, ease: "power2.out" }, 1.38);
+        tl.fromTo("#branch-outcome", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 1.82);
+        tl.fromTo("#branch-dot", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.36, ease: "power3.out" }, 3.08); // beat-locked: global 15.08s; cue at 15.285s
+        window.__timelines["scene-four"] = tl;
+      </script>
+    </template>
+  </body>
+</html>
