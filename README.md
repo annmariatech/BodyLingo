@@ -14,6 +14,9 @@ People often interpret body language, tone, or conversational behavior as if eac
 
 BodyLingo offers short, accessible learning experiences that treat cues as possibilities rather than conclusions. Learners can build observation skills, try branching conversation scenarios, revisit knowledge checks over time, and explore practical response exercises. The app encourages respectful clarification and personal choice; it does not claim to read minds or diagnose people.
 
+## DEMO LINK:
+https://drive.google.com/file/d/1UIXiljUmZ4sxr3XS9VhfiVblF7whoK-V/view?usp=sharing
+
 ## Tech stack
 
 | Area | Technology |
